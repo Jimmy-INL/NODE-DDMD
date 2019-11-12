@@ -42,9 +42,20 @@ for i in range(5):
     k.append(t)
 r = np.sum(k, axis=0)"""
 
-G = 0.2 * np.sum([np.outer(sai(data[i, 0]).T, (sai(data[i, 0]))) for i in range(5)], axis=0)
+G = 0.2 * np.sum([np.outer(sai(data[i, 0]).T, (sai(data[i, 0]))) for i in range(5)], axis=0)  # 本当はエルミート
 A = 0.2 * np.sum([np.outer(sai(data[i, 0]).T, (sai(data[i, 1]))) for i in range(5)], axis=0)
-print(G.dot(G))
+# print(G.dot(G))
 # K = np.linalg.inv(G.T.dot(G)).dot(G).dot(A)  # G：5*5、HybridKoopman Operatorだから？
 # p = np.linalg.inv(G).dot(A)
 K = np.linalg.pinv(G).dot(A)
+
+mu, w, xi = la.eig(K, left=True, right=True)
+B = [1, 1, 1, 1, 1]
+v = (w.T.dot(B)).T  # 本当はエルミート
+print(v)
+
+true_phi = [None] * 5
+for k in range(5):
+    for l in range(5):
+        true_phi[k] = sai(data[l, 0]).dot(xi[k])
+print(true_phi)
