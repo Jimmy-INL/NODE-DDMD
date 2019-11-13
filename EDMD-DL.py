@@ -63,10 +63,11 @@ for _ in range(50):
     pred_sai = net(data_val[count:count + 1])  # count * 50 : count * 50 + 50
     y_pred_sai = net(data_val[count + 1:count + 2, :])
 
+    print(y_pred_sai.grad_fn)
     pred_sai = pred_sai.detach().numpy()
     y_pred_sai = y_pred_sai.detach().numpy()
-
     G = np.outer(pred_sai.T, pred_sai)  # 本当はエルミート
+    Q = pred_sai.T.dot(pred_sai)
     A = np.outer(pred_sai.T, y_pred_sai)
     # print(G.dot(G))
     # K = np.linalg.inv(G.T.dot(G)).dot(G).dot(A)  # G：5*5、HybridKoopman Operatorだから？
@@ -90,11 +91,12 @@ for _ in range(50):
 
     x_tilde = 0 # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
     Pred = K_tilde.dot(pred_sai[0])
-    Pred = torch.tensor(Pred, dtype=torch.float32)
+    Pred = torch.tensor(Pred, dtype=torch.float32, requires_grad=True)
     y_pred_sai = y_pred_sai[0]
-    y_pred_sai = torch.tensor(y_pred_sai, dtype=torch.float32, requires_grad=True)
-    res = torch.tensor(lambda_ * (K_tilde).dot(K_tilde), dtype=torch.float32)
+    y_pred_sai = torch.tensor(y_pred_sai, dtype=torch.float32)
+    res = torch.tensor(lambda_ * K_tilde.dot(K_tilde), dtype=torch.float32)
 
+    print(y_pred_sai.grad_fn)
     loss = loss_fn(Pred, y_pred_sai)  # + res
     # loss = loss_fn(x_tilde, data_val[count + 1, :])  # count * 50 + 1 : count * 50 + 51
     loss.backward()
