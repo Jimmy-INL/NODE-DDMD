@@ -56,7 +56,7 @@ net = nn.Sequential(
     nn.Linear(l, M),
 )
 # optimizer = optim.SGD(net.parameters(), lr=1e-5)
-optimizer = optim.Adam(net.parameters(), lr=1e-4)
+optimizer = optim.Adam(net.parameters(), lr=1e-6)
 loss_fn = nn.MSELoss()  # J(K, theta)
 
 
@@ -68,7 +68,7 @@ def Frobenius_norm(X):
     M = torch.mm(X, torch.transpose(X, 0, 1))
     return sum(torch.diag(M, 0))
 
-width = 50
+width = 500
 inv_N = 0.02040816
 # while J(K, theta) > epsilon:
 for count in range(500):

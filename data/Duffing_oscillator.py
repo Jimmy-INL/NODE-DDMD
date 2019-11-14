@@ -11,7 +11,7 @@ filenamePrefix = 'Duffing_oscillator'
 
 x1range = [-2, 2]
 x2range = [-2, 2]
-tSpan = np.arange(0, 125 + 0.25, 0.25)  # 0:0.02:1
+tSpan = np.arange(0, 125, 0.25)  # 0:0.02:1
 
 
 
