@@ -140,12 +140,14 @@ for _ in range(50):
 
     G = torch.mm(pred_sai_T, pred_sai)  # 本当はエルミート
     A = torch.mm(pred_sai_T, y_pred_sai)
+    G_np = G.detach().numpy()
+    A_np = A.detach().numpy()
     # print(G.dot(G))
     # K = np.linalg.inv(G.T.dot(G)).dot(G).dot(A)  # G：5*5、HybridKoopman Operatorだから？
     # p = np.linalg.inv(G).dot(A)
-    # K = np.linalg.pinv(G).dot(A)
+    K = np.linalg.pinv(G).dot(A)
 
-    """mu, w, xi = la.eig(K, left=True, right=True)
+    mu, w, xi = la.eig(K, left=True, right=True)
     B = [1] * 25
     v = (w.T.dot(B)).T  # 本当はエルミート
     # print(v)
@@ -156,7 +158,7 @@ for _ in range(50):
         p = xi[k]
         q = pred_sai
         true_phi[k] += xi[k].dot(pred_sai[0])
-    print(true_phi)"""
+    print(true_phi)
 
     # K_tilde = np.linalg.pinv(G + lambda_ * I).dot(A)
     R = G + lambda_ * I
@@ -165,9 +167,9 @@ for _ in range(50):
     K_tilde = torch.mm(p_inv(G + lambda_ * I), A)  # pinverseを使うとおかしくなるのでp_invで代用
     # theta = theta -
     # print(U)
-
-    x_tilde = 0  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
-    Pred = torch.mm(K_tilde, pred_sai_T)
+    """for n in range(width)
+    x_tilde = sum([(mu[k] ** n) * true_phi[k] * v[k] for k in range(25)])  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
+    Pred = torch.mm(K_tilde, pred_sai_T)"""
     # y_pred_sai = y_pred_sai[0]
     y_pred_sai = torch.tensor(y_pred_sai.detach().numpy(), dtype=torch.float32)
     # res = torch.tensor(lambda_ * torch.mm(K_tilde, K_tilde), dtype=torch.float32)

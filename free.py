@@ -16,6 +16,20 @@ print(y.grad_fn)#<AddBackward0 object at 0x101b40e48>
 z = x/2
 print(z.grad_fn)#<DivBackward0 object at 0x10432beb8>
 """
+t = torch.tensor([[1, 2, 6], [3, 4., 2]]); print(t)
+# deviceを指定することでGPUにTensorを作成する
+# t = torch.tensor([[1, 2], [3, 4.]], device="cuda:0")
+# print(t)
+# dtypeを指定することで倍精度のTensorを作る
+t = torch.tensor([[1, 2], [3, 4.]], dtype=torch.float64); print(t)
+# 0から9まで数値で初期化された1次元のTensor
+t = torch.arange(0, 10); print(t)
+# すべての値が0の100×10のTensorを作成し，toメソッドでGPUに転送する
+# t = torch.zeros(100, 10).to("cuda:0")
+# 正規乱数で100×10のTensorを作成
+t = torch.randn(100, 10); print(t)
+# Tensorのshapeはsizeメソッドで習得可能
+print(t.size(), "サイズ")
 
 import torch.optim as optim
 class Net(nn.Module):
