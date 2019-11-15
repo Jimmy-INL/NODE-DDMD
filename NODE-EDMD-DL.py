@@ -41,7 +41,7 @@ class ODEFunc(nn.Module):
 
 params = {}
 params['data_name'] = 'Duffing_oscillator'
-data_val = np.loadtxt(('./data/%s_val_x.csv' % (params['data_name'])), delimiter=',', dtype=np.float64)  # ここでデータを読み込む
+data_val = np.loadtxt(('./data/%s_train_x.csv' % (params['data_name'])), delimiter=',', dtype=np.float64)  # ここでデータを読み込む
 data_val = torch.tensor(data_val, dtype=torch.float32)
 
 
@@ -70,14 +70,14 @@ def Frobenius_norm(X):
 tSpan = np.arange(0, 125, 0.25)
 tSpan = torch.from_numpy(tSpan)
 
-intSpan = torch.tensor([i for i in range(1, 23)], dtype=torch.float32)
+intSpan = torch.tensor([i for i in range(1, 26)], dtype=torch.float32)
 width = 500
 inv_N = 0.02040816
 min_loss = float("INF")
 # while J(K, theta) > epsilon:
-for count in range(500):
+for count in range(1000):
     print(count)
-    for _ in range(500):
+    for _ in range(1000):
         optimizer.zero_grad()
 
         t = data_val[count * width:count * width + width]
@@ -85,9 +85,9 @@ for count in range(500):
         y_pred_sai = odeint(net, data_val[count * width + 1:count * width + width, :], tSpan)"""
         tmp_pred_sai = odeint(net, data_val[count * width:count * width + width - 1], intSpan)
         tmp_y_pred_sai = odeint(net, data_val[count * width + 1:count * width + width, :], intSpan)
-        pred_sai = torch.tensor([[0] * 22 for i in range(width - 1)], dtype=torch.float32)  # torch.tensor()
-        y_pred_sai = torch.tensor([[0] * 22 for i in range(width - 1)], dtype=torch.float32)  # torch.tensor()
-        for i in range(22):
+        pred_sai = torch.tensor([[0] * 25 for i in range(width - 1)], dtype=torch.float32)  # torch.tensor()
+        y_pred_sai = torch.tensor([[0] * 25 for i in range(width - 1)], dtype=torch.float32)  # torch.tensor()
+        for i in range(25):
             for j in range(width - 1):
                 p = tmp_pred_sai[i][j]
                 # tmp_pred_sai[i][j] = sum(tmp_pred_sai[i][j]) / 2
@@ -122,7 +122,7 @@ for count in range(500):
         # Pred = Pred.view(1, -1)
         loss = res
         QWRETY = y_pred_sai_T - pred_sai_T
-        for i in range(22):
+        for i in range(25):
             # loss += torch.log(sum([abs(c) for c in QWRETY[i]]))
             loss += sum([abs(c) for c in QWRETY[i]])
         """for j in range(len(Pred)):

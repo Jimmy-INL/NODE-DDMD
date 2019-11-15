@@ -16,7 +16,7 @@ def Duffing_oscillator_ODE(x1range, x2range, numICs, tSpan, seed,):  # function 
         # print(dydt)
         return dydt
 
-    lenT = len(tSpan)  # 500
+    lenT = len(tSpan)  # 10, 500
 
     X = np.zeros((numICs * lenT, 2))
 
