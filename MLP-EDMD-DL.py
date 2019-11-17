@@ -28,7 +28,7 @@ epsilon = 0.1
 
 d = 2
 l = 200
-M = 25  # 22
+M = 22  # 22
 
 net = nn.Sequential(
     nn.Linear(d, l),
@@ -41,7 +41,7 @@ net = nn.Sequential(
     nn.Linear(l, M),
 )
 # optimizer = optim.SGD(net.parameters(), lr=1e-5)
-optimizer = optim.Adam(net.parameters(), lr=7e-6)
+optimizer = optim.Adam(net.parameters(), lr=1e-6)
 loss_fn = nn.MSELoss()  # J(K, theta)
 
 
@@ -96,9 +96,15 @@ for tr_val_te in ["train", "val", "test"]:
         for rout in range(1000):
             optimizer.zero_grad()
 
-            t = data[count * width:count * width + width]
-            pred_sai = net(data[count * width:count * width + width - 1])  # count * 50 : count * 50 + 50
-            y_pred_sai = net(data[count * width + 1:count * width + width, :])
+            x_data = data[count * width:count * width + width - 1]
+            y_data = data[count * width + 1:count * width + width]  # data[count * width + 1:count * width + width, :]
+            pred_sai = net(x_data)  # count * 50 : count * 50 + 50
+            y_pred_sai = net(y_data)
+
+            fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
+            pred_sai = torch.cat([pred_sai, fixed_sai], dim=1)
+            y_fixed_sai = torch.tensor([i + [0.1] for i in y_data.detach().tolist()], dtype=torch.float32)
+            y_pred_sai = torch.cat([y_pred_sai, y_fixed_sai], dim=1)
 
             pred_sai_T = torch.transpose(pred_sai, 0, 1)
 
