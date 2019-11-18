@@ -168,6 +168,10 @@ for tr_val_te in ["train", "val", "test"]:
             #print(E_recon)
 
             """E_eigfunc_jを計算"""
+            NI = 100000
+            a = 3
+            b = 7
+            x = np.random.uniform(loc=a, scale=b - a).rvs(size=NI)
             """
             E_eigfunc = [0] * 25
             for j in range(25):
