@@ -21,26 +21,27 @@ def J(K, theta):
     pass
 
 
-lambda_ = 1e-3
+lambda_ = 1e-1
 I = torch.tensor(np.eye(25, 25), dtype=torch.float32)
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
 epsilon = 0.1
 
 d = 2
-l = 100
-M = 25  # 22
+l = 200
+M = 22  # 22
 
 net = nn.Sequential(
     nn.Linear(d, l),
     nn.Tanh(),
     nn.Linear(l, l),
     nn.Tanh(),
+    # nn.Dropout(0.5),
     nn.Linear(l, l),
     nn.Tanh(),
     nn.Linear(l, M),
 )
 # optimizer = optim.SGD(net.parameters(), lr=1e-5)
-optimizer = optim.Adam(net.parameters(), lr=1e-4)
+optimizer = optim.Adam(net.parameters(), lr=1e-6)
 loss_fn = nn.MSELoss()  # J(K, theta)
 
 
@@ -78,12 +79,12 @@ for tr_val_te in ["train", "val", "test"]:
     data = np.loadtxt(('./data/%s_%s_x.csv' % (params['data_name'], tr_val_te)), delimiter=',', dtype=np.float64)
     # np.loadtxt(('./data/%s_val_x.csv' % (params['data_name'])), delimiter=',', dtype=np.float64)  # ここでデータを読み込む
     data = torch.tensor(data, dtype=torch.float32)
-    if tr_val_te != "train":
-        graph(Y, "all")
-        X += x
-        Y += y
-        x = []
-        y = []
+    # if tr_val_te != "train":
+    graph(Y, "all")
+    X += x
+    Y += y
+    x = []
+    y = []
     for count in range(10):
         print(count)
         if count > 0:
@@ -95,9 +96,15 @@ for tr_val_te in ["train", "val", "test"]:
         for rout in range(1000):
             optimizer.zero_grad()
 
-            t = data[count * width:count * width + width]
-            pred_sai = net(data[count * width:count * width + width - 1])  # count * 50 : count * 50 + 50
-            y_pred_sai = net(data[count * width + 1:count * width + width, :])
+            x_data = data[count * width:count * width + width - 1]
+            y_data = data[count * width + 1:count * width + width]  # data[count * width + 1:count * width + width, :]
+            pred_sai = net(x_data)  # count * 50 : count * 50 + 50
+            y_pred_sai = net(y_data)
+
+            fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
+            pred_sai = torch.cat([pred_sai, fixed_sai], dim=1)
+            y_fixed_sai = torch.tensor([i + [0.1] for i in y_data.detach().tolist()], dtype=torch.float32)
+            y_pred_sai = torch.cat([y_pred_sai, y_fixed_sai], dim=1)
 
             pred_sai_T = torch.transpose(pred_sai, 0, 1)
 
@@ -106,6 +113,7 @@ for tr_val_te in ["train", "val", "test"]:
             G_np = G.detach().numpy()
             A_np = A.detach().numpy()
             K_tilde = torch.mm(p_inv(G + lambda_ * I), A)  # pinverseを使うとおかしくなるのでp_invで代用
+            K_tilde = torch.tensor(K_tilde, requires_grad=False)
 
             Pred = torch.mm(K_tilde, pred_sai_T)
             # Pred = torch.transpose(Pred, 0, 1)
@@ -120,10 +128,10 @@ for tr_val_te in ["train", "val", "test"]:
             # t = torch.transpose(pred_sai_T, 0, 1)
             # Pred = Pred.view(1, -1)
             loss = res
-            QWRETY = y_pred_sai_T - pred_sai_T
+            QWRETY = y_pred_sai_T - Pred
             for i in range(25):
                 # loss += torch.log(sum([abs(c) for c in QWRETY[i]]))
-                loss += sum([abs(c) for c in QWRETY[i]])
+                loss += sum([c ** 2 for c in QWRETY[i]])
             """for j in range(len(Pred)):
                 for i in y_pred_sai[j] - Pred[j]:
                     loss += torch.log(abs(i))"""
@@ -132,8 +140,8 @@ for tr_val_te in ["train", "val", "test"]:
             # loss = loss_fn(Pred, y_pred_sai_T)
             # loss =torch.tensor(1, requires_grad=True)
             x.append(rout)
-            if loss < 10:
-                y.append(loss)
+            # if loss < 1.5:
+            y.append(loss)
             print("loss", loss)
             # print(net.parameters().item())
             loss.backward()
