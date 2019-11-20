@@ -119,7 +119,7 @@ for tr_val_te in ["train", "val", "test"]:
             # Pred = torch.transpose(Pred, 0, 1)
 
             # y_pred_sai = y_pred_sai[0]
-            y_pred_sai = torch.tensor(y_pred_sai, requires_grad=False)
+            y_pred_sai = torch.tensor(y_pred_sai)
             # y_pred_sai = torch.tensor(y_pred_sai.detach().numpy(), dtype=torch.float32)
             y_pred_sai_T = torch.transpose(y_pred_sai, 0, 1)
             # res = torch.tensor(lambda_ * torch.mm(K_tilde, K_tilde), dtype=torch.float32)
