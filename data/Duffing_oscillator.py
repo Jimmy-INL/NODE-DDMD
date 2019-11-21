@@ -6,12 +6,12 @@ from Duffing_oscillator_ODE import Duffing_oscillator_ODE
 import csv
 import numpy as np
 
-numICs = 1000
+numICs = 10000
 filenamePrefix = 'Duffing_oscillator'
 
 x1range = [-2, 2]
 x2range = [-2, 2]
-tSpan = np.arange(0, 2.5, 0.25)# np.arange(0, 125, 0.25)  # 0:0.02:1
+tSpan = np.arange(0, 2.5 + 0.1, 0.25)# np.arange(0, 125, 0.25)  # 0:0.02:1
 
 
 
