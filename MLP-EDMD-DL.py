@@ -83,11 +83,12 @@ Y = []
 count = 0
 K_tilde = []
 
+"""netを学習"""
 for tr_val_te in ["train"]:
     data = data_Preprocessing(tr_val_te)
     # if tr_val_te != "train":
     count = 0
-    while count < 1000:
+    while count < 100:
         optimizer.zero_grad()
 
         x_data = data[count * width:count * width + width - 1]
@@ -145,8 +146,9 @@ for tr_val_te in ["train"]:
     # graph(y, tr_val_te)
 
 
-"""学習済みのnetを使って，E_reconとE_eigfuncを計算"""
+"""学習済みのnetを使って，E_reconを計算"""
 K = K_tilde
+mu = 0
 for tr_val_te in ["test"]:
     data = data_Preprocessing(tr_val_te)
     count = 0
@@ -173,7 +175,7 @@ for tr_val_te in ["test"]:
     B = torch.mm(X25, torch.inverse(Sai))
     B = B.detach().numpy()
 
-    while count < 1000:
+    while count < 10:
         x_data = data[count * width:count * width + width - 1]  # N = 10
         sai = net(x_data)
         fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
@@ -195,16 +197,41 @@ for tr_val_te in ["test"]:
                                 for n in range(width - 1)])) ** 0.5
         print("E_recon", E_recon)
 
-
-        """E_eigfunc_jを計算"""
-        NI = 100000
-        a = 3
-        b = 7
-        # x = np.random.uniform(loc=a, scale=b - a).rvs(size=NI)
-        """
-        E_eigfunc = [0] * 25
-        for j in range(25):
-            E_eigfunc[j] = np.sqrt(inv_N * sum([abs(data_val[n + 1][0] - mu[j] * x_tilde[n][0]) ** 2 + abs(data_val[n + 1][1] - x_tilde[n][1]) ** 2
-                                           for n in range(width - 1)]))"""
-
         count += 1
+
+
+"""学習済みのnetを使って，E_eigfuncを計算"""
+I_number = 1000
+data = np.loadtxt('./data/E_eigfunc.csv', delimiter=',', dtype=np.float64)
+data = torch.tensor(data, dtype=torch.float32)
+width = 2
+phi_list = [[0 for count in range(I_number)] for j in range(25)]
+y_phi_list = [[0 for count in range(I_number)] for j in range(25)]
+
+for count in range(I_number):
+    x_data = data[count * width:count * width + width]
+    pred_sai = net(x_data)  # count * 50 : count * 50 + 50
+
+    for j in range(25):
+        if j < 22:
+            phi_list[j][count] = pred_sai[0][j].detach().numpy()
+            y_phi_list[j][count] = pred_sai[1][j].detach().numpy()
+        elif j == 22:
+            phi_list[j][count] = x_data[0][0].detach().numpy()
+            y_phi_list[j][count] = x_data[1][0].detach().numpy()
+        elif j == 23:
+            phi_list[j][count] = x_data[0][1].detach().numpy()
+            y_phi_list[j][count] = x_data[1][1].detach().numpy()
+        elif j == 24:
+            phi_list[j][count] = 0.1
+            y_phi_list[j][count] = 0.1
+
+
+phi_list = phi_list
+y_phi_list = y_phi_list
+"""E_eigfunc_jを計算"""
+E_eigfunc = [0] * 25
+for j in range(25):
+    E_eigfunc[j] = np.sqrt(1 / I_number * sum([abs(y_phi_list[j][count] - mu[j] * phi_list[j][count]) ** 2
+                                   for count in range(I_number)]))
+    print("E_eigfunc", E_eigfunc[j])
