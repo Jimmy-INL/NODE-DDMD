@@ -37,6 +37,11 @@ X_train = Duffing_oscillator_ODE(x1range, x2range, round(1 * numICs), tSpan, see
 filename_train = filenamePrefix + '_train_x.csv'
 make_csv(filename_train, X_train)
 
+seed = 18
+X_test = Duffing_oscillator_ODE([-1, 1], [-1, 1], round(1 * numICs), tSpan, seed)
+filename_test = filenamePrefix + '_train18_x.csv'
+make_csv(filename_test, X_test)
+
 seed = 1000
 X_train = Duffing_oscillator_ODE(x1range, x2range, round(1 * numICs), np.arange(0, 0.25 + 0.1, 0.25), seed)
 filename_train = "E_eigfunc" + '.csv'

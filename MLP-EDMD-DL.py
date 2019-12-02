@@ -21,8 +21,8 @@ def J(K, theta):
     pass
 
 
-lambda_ = 1e-3
-I = torch.tensor(np.eye(25, 25), dtype=torch.float32)
+lambda_ = 1e-1
+I = torch.eye(25, 25)
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
 epsilon = 0.1
 
@@ -41,7 +41,7 @@ net = nn.Sequential(
     nn.Linear(l, M),
 )
 # optimizer = optim.SGD(net.parameters(), lr=1e-3)
-optimizer = optim.Adam(net.parameters(), lr=1e-5)
+optimizer = optim.Adam(net.parameters(), lr=1e-3)
 loss_fn = nn.MSELoss()  # J(K, theta)
 
 def data_Preprocessing(tr_val_te):
@@ -88,7 +88,7 @@ data = data_Preprocessing("train")
 # if tr_val_te != "train":
 count = 0
 for _ in range(1):
-    while count < 1:
+    while count < 1000:
         optimizer.zero_grad()
 
         x_data = data[count * width:count * width + width - 1]
@@ -126,7 +126,7 @@ for _ in range(1):
         # t = torch.transpose(pred_sai_T, 0, 1)
         # Pred = Pred.view(1, -1)
         loss = res
-        QWRETY = y_pred_sai_T - Pred
+        QWRETY = y_pred_sai_T - Pred  # pred_sai_T
         # torch.matrix_power(QWRETY)
         for i in range(10):
             # print(QWRETY[i])
@@ -161,7 +161,7 @@ for tr_val_te in ["E_recon_50"]:
     data = torch.tensor(data, dtype=torch.float32)
     count = 0
     width = 51
-    """Bを計算"""
+    """Bを計算，X=BΨ"""
     X25 = data[0].view(2, -1)
     for i in range(1, 25):
         x2_data = data[width * i].view(2, -1)
@@ -194,13 +194,19 @@ for tr_val_te in ["E_recon_50"]:
         """E_reconを計算"""
         mu, xi, zeta = la.eig(K, left=True, right=True)
 
-        m = B.dot(zeta)  # (xi.T.dot(B)).T  # 本当はエルミート
+        mu_real = [i.real for i in mu]
+        mu_imag = [i.imag for i in mu]
+        plt.scatter(mu_real, mu_imag)
+        plt.show()
+
+        m = B.dot(zeta.T)  # (xi.T.dot(B)).T  # 本当はエルミート
         m = m.T
-        phi = xi.T.dot(sai_T)
+        phi = xi.dot(sai_T)
 
         x_tilde = [[0, 0]] * (width - 1)
         for n in range(width - 1):
-            x_tilde[n] = sum([(mu[k] ** (n + 1)) * phi[k][0] * m[k] for k in range(25)])  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
+            x_tilde[n][0] = sum([(mu[k] ** (n + 1)) * phi[k][0] * m[k][0] for k in range(25)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
+            x_tilde[n][1] = sum([(mu[k] ** (n + 1)) * phi[k][0] * m[k][1] for k in range(25)]).real
 
         x_data = x_data.detach().numpy()
         E_recon = (inv_N * sum([abs(x_data[n][0] - x_tilde[n][0]) ** 2 + abs(x_data[n][1] - x_tilde[n][1]) ** 2

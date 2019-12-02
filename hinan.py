@@ -71,7 +71,7 @@ net = nn.Sequential(
     nn.Linear(l, M),
 )
 # optimizer = optim.SGD(net.parameters(), lr=1e-3)
-optimizer = optim.Adam(net.parameters(), lr=1e-2)
+optimizer = optim.Adam(net.parameters(), lr=1e-3)
 loss_fn = nn.MSELoss()  # J(K, theta)
 
 def data_Preprocessing(tr_val_te):
@@ -118,7 +118,7 @@ data = data_Preprocessing("train")
 # if tr_val_te != "train":
 count = 0
 count1 = 0
-y_pred_sai_T1 = torch.rand(25, 25)
+y_pred_sai_T1 = torch.rand(25, 10)
 for _ in range(1):
     while count < 1000:
         optimizer.zero_grad()
@@ -156,7 +156,7 @@ for _ in range(1):
         # Pred = Pred.view(1, -1)
         loss = res
 
-        QWRETY = y_pred_sai_T1 - G
+        QWRETY = y_pred_sai_T1 - pred_sai_T
         # torch.matrix_power(QWRETY)
         for i in range(10):
             # print(QWRETY[i])

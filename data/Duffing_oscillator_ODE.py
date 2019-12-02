@@ -35,8 +35,8 @@ def Duffing_oscillator_ODE(x1range, x2range, numICs, tSpan, seed,):  # function 
     X = temp"""
     count = 1
     for j in range(100 * numICs):  # j = 1:100*numICs
-        x1 = uniform(-2, 2)
-        x2 = uniform(-2, 2)
+        x1 = uniform(x1range[0], x1range[1])
+        x2 = uniform(x2range[0], x2range[1])
         ic = [x1, x2]
         temp = odeint(dynsys, ic, tSpan)
         # [T, temp] = odeint(dynsys, ic, tSpan)
