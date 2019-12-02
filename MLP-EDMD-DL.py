@@ -21,7 +21,7 @@ def J(K, theta):
     pass
 
 
-lambda_ = 0.1
+lambda_ = 1e-3
 I = torch.tensor(np.eye(25, 25), dtype=torch.float32)
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
 epsilon = 0.1
@@ -40,8 +40,8 @@ net = nn.Sequential(
     nn.Tanh(),
     nn.Linear(l, M),
 )
-optimizer = optim.SGD(net.parameters(), lr=1e-3)
-# optimizer = optim.Adam(net.parameters(), lr=1e-3)
+# optimizer = optim.SGD(net.parameters(), lr=1e-3)
+optimizer = optim.Adam(net.parameters(), lr=1e-5)
 loss_fn = nn.MSELoss()  # J(K, theta)
 
 def data_Preprocessing(tr_val_te):
@@ -56,7 +56,7 @@ def p_inv(X):
 
 def Frobenius_norm(X):
     M = torch.mm(X, torch.transpose(X, 0, 1))
-    return sum(torch.diag(M, 0))
+    return torch.sum(torch.diag(M, 0))
 
 def graph(y, st):
     plots = plt.plot(y)
@@ -88,7 +88,7 @@ data = data_Preprocessing("train")
 # if tr_val_te != "train":
 count = 0
 for _ in range(1):
-    while count < 1000:
+    while count < 1:
         optimizer.zero_grad()
 
         x_data = data[count * width:count * width + width - 1]
@@ -96,9 +96,12 @@ for _ in range(1):
         pred_sai = net(x_data)  # count * 50 : count * 50 + 50
         y_pred_sai = net(y_data)
 
-        fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
+        fixed_sai = torch.cat([x_data, torch.tensor([[0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1]])], dim=1)
+        y_fixed_sai = torch.cat([y_data, torch.tensor([[0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1]])], dim=1)
+
+        # fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
         pred_sai = torch.cat([pred_sai, fixed_sai], dim=1)
-        y_fixed_sai = torch.tensor([i + [0.1] for i in y_data.detach().tolist()], dtype=torch.float32)
+        # y_fixed_sai = torch.tensor([i + [0.1] for i in y_data.detach().tolist()], dtype=torch.float32)
         y_pred_sai = torch.cat([y_pred_sai, y_fixed_sai], dim=1)
 
         pred_sai_T = torch.transpose(pred_sai, 0, 1)
@@ -124,9 +127,12 @@ for _ in range(1):
         # Pred = Pred.view(1, -1)
         loss = res
         QWRETY = y_pred_sai_T - Pred
-        for i in range(25):
-            # loss += torch.log(sum([abs(c) for c in QWRETY[i]]))
-            loss += sum([c ** 2 for c in QWRETY[i]])
+        # torch.matrix_power(QWRETY)
+        for i in range(10):
+            # print(QWRETY[i])
+            # loss += torch.log(sum([abs(c) for c in QWRETY[i]]))  # 順番逆かも，結果は変わらない
+            for c in QWRETY[:, i]:
+                loss += c ** 2
         """for j in range(len(Pred)):
             for i in y_pred_sai[j] - Pred[j]:
                 loss += torch.log(abs(i))"""
@@ -150,13 +156,15 @@ for _ in range(1):
 """学習済みのnetを使って，E_reconを計算"""
 K = K_tilde
 mu = 0
-for tr_val_te in ["train"]:
-    data = data_Preprocessing(tr_val_te)
+for tr_val_te in ["E_recon_50"]:
+    data = np.loadtxt('./data/E_recon_50.csv', delimiter=',', dtype=np.float64)
+    data = torch.tensor(data, dtype=torch.float32)
     count = 0
+    width = 51
     """Bを計算"""
     X25 = data[0].view(2, -1)
     for i in range(1, 25):
-        x2_data = data[11 * i].view(2, -1)
+        x2_data = data[width * i].view(2, -1)
         X25 = torch.cat([X25, x2_data], dim=1)
 
     Sai = net(data[0])
@@ -165,8 +173,8 @@ for tr_val_te in ["train"]:
     Sai = torch.cat([Sai, fixed_sai1])
     Sai = Sai.view(25, -1)
     for i in range(1, 25):
-        sai = net(data[11 * i])
-        tmp = data[11 * i].detach().tolist() + [0.1]
+        sai = net(data[width * i])
+        tmp = data[width * i].detach().tolist() + [0.1]
         fixed_sai = torch.tensor(tmp, dtype=torch.float32)
         sai = torch.cat([sai, fixed_sai])
         sai = sai.view(25, -1)
@@ -177,6 +185,7 @@ for tr_val_te in ["train"]:
     B = B.detach().numpy()
 
     while count < 10:
+        width = 51
         x_data = data[count * width:count * width + width - 1]  # N = 10
         sai = net(x_data)
         fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
@@ -199,6 +208,10 @@ for tr_val_te in ["train"]:
         print("E_recon", E_recon)
 
         count += 1
+        plt.plot(x_data[:, 0])  # 実データ，青
+        x_tilde_0 = [i for i, j in x_tilde]
+        plt.plot(x_tilde_0)  # 予測，オレンジ
+        plt.show()
 
 
 """学習済みのnetを使って，E_eigfuncを計算"""

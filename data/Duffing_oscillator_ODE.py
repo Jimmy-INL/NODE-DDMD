@@ -12,7 +12,7 @@ def Duffing_oscillator_ODE(x1range, x2range, numICs, tSpan, seed,):  # function 
     def dynsys(x, t):
         dydt = np.zeros_like(x)
         dydt[0] = x[1]  # x[1, :]
-        dydt[1] = -delta * x[1] - x[0] * (beta + alpha * x[1] ** 2)
+        dydt[1] = -delta * x[1] - x[0] * (beta + alpha * x[0] ** 2)
         # print(dydt)
         return dydt
 
