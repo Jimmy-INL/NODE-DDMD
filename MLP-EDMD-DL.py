@@ -21,13 +21,13 @@ def J(K, theta):
     pass
 
 
-lambda_ = 1e-1
+lambda_ = 1e-6 # 1e-6
 I = torch.eye(25, 25)
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
 epsilon = 0.1
 
 d = 2
-l = 100
+l = 70 # 70
 M = 22  # 22
 
 net = nn.Sequential(
@@ -41,7 +41,7 @@ net = nn.Sequential(
     nn.Linear(l, M),
 )
 # optimizer = optim.SGD(net.parameters(), lr=1e-3)
-optimizer = optim.Adam(net.parameters(), lr=1e-3)
+optimizer = optim.Adam(net.parameters(), lr=1e-5)  # 1e-5
 loss_fn = nn.MSELoss()  # J(K, theta)
 
 def data_Preprocessing(tr_val_te):
@@ -154,7 +154,7 @@ for _ in range(1):
 
 
 """学習済みのnetを使って，E_reconを計算"""
-K = K_tilde
+K = K_tilde # torch.rand(25, 25) #K_tilde
 mu = 0
 for tr_val_te in ["E_recon_50"]:
     data = np.loadtxt('./data/E_recon_50.csv', delimiter=',', dtype=np.float64)
@@ -203,7 +203,7 @@ for tr_val_te in ["E_recon_50"]:
         m = m.T
         phi = xi.dot(sai_T)
 
-        x_tilde = [[0, 0]] * (width - 1)
+        x_tilde = [[0, 0] for _ in range(width - 1)]  # [[0, 0]] * (width - 1)
         for n in range(width - 1):
             x_tilde[n][0] = sum([(mu[k] ** (n + 1)) * phi[k][0] * m[k][0] for k in range(25)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
             x_tilde[n][1] = sum([(mu[k] ** (n + 1)) * phi[k][0] * m[k][1] for k in range(25)]).real
