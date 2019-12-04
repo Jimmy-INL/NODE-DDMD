@@ -21,13 +21,13 @@ def J(K, theta):
     pass
 
 
-lambda_ = 1e-6 # 1e-6
+lambda_ = 1e-5 # 1e-6
 I = torch.eye(25, 25)
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
 epsilon = 0.1
 
 d = 2
-l = 70 # 70
+l = 50 # 70
 M = 22  # 22
 
 net = nn.Sequential(
@@ -41,7 +41,7 @@ net = nn.Sequential(
     nn.Linear(l, M),
 )
 # optimizer = optim.SGD(net.parameters(), lr=1e-3)
-optimizer = optim.Adam(net.parameters(), lr=1e-5)  # 1e-5
+optimizer = optim.Adam(net.parameters(), lr=1e-4)  # 1e-5
 loss_fn = nn.MSELoss()  # J(K, theta)
 
 def data_Preprocessing(tr_val_te):
@@ -73,8 +73,8 @@ def graph(y, st):
     plt.show()
 
 
-width = 11
-inv_N = 0.1
+width = 51 #11
+inv_N = 1/50#0.1
 # while J(K, theta) > epsilon:
 x = []
 y = []
@@ -85,10 +85,12 @@ K_tilde = []
 
 """netを学習"""
 data = data_Preprocessing("train")
+data = np.loadtxt('./data/E_recon_50.csv', delimiter=',', dtype=np.float64)
+data = torch.tensor(data, dtype=torch.float32)
 # if tr_val_te != "train":
 count = 0
 for _ in range(1):
-    while count < 1000:
+    while count < 10000:
         optimizer.zero_grad()
 
         x_data = data[count * width:count * width + width - 1]
@@ -96,12 +98,12 @@ for _ in range(1):
         pred_sai = net(x_data)  # count * 50 : count * 50 + 50
         y_pred_sai = net(y_data)
 
-        fixed_sai = torch.cat([x_data, torch.tensor([[0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1]])], dim=1)
-        y_fixed_sai = torch.cat([y_data, torch.tensor([[0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1]])], dim=1)
+        #fixed_sai = torch.cat([x_data, torch.tensor([[0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1]])], dim=1)
+        #y_fixed_sai = torch.cat([y_data, torch.tensor([[0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1]])], dim=1)
 
-        # fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
+        fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
         pred_sai = torch.cat([pred_sai, fixed_sai], dim=1)
-        # y_fixed_sai = torch.tensor([i + [0.1] for i in y_data.detach().tolist()], dtype=torch.float32)
+        y_fixed_sai = torch.tensor([i + [0.1] for i in y_data.detach().tolist()], dtype=torch.float32)
         y_pred_sai = torch.cat([y_pred_sai, y_fixed_sai], dim=1)
 
         pred_sai_T = torch.transpose(pred_sai, 0, 1)
@@ -128,7 +130,7 @@ for _ in range(1):
         loss = res
         QWRETY = y_pred_sai_T - Pred  # pred_sai_T
         # torch.matrix_power(QWRETY)
-        for i in range(10):
+        for i in range(width - 1):
             # print(QWRETY[i])
             # loss += torch.log(sum([abs(c) for c in QWRETY[i]]))  # 順番逆かも，結果は変わらない
             for c in QWRETY[:, i]:
@@ -184,7 +186,7 @@ for tr_val_te in ["E_recon_50"]:
     B = torch.mm(X25, torch.inverse(Sai))
     B = B.detach().numpy()
 
-    while count < 10:
+    while count < 1000:
         width = 51
         x_data = data[count * width:count * width + width - 1]  # N = 10
         sai = net(x_data)
@@ -205,8 +207,11 @@ for tr_val_te in ["E_recon_50"]:
 
         x_tilde = [[0, 0] for _ in range(width - 1)]  # [[0, 0]] * (width - 1)
         for n in range(width - 1):
-            x_tilde[n][0] = sum([(mu[k] ** (n + 1)) * phi[k][0] * m[k][0] for k in range(25)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
-            x_tilde[n][1] = sum([(mu[k] ** (n + 1)) * phi[k][0] * m[k][1] for k in range(25)]).real
+            #x_tilde[n][0] = sum([(mu[k] ** n) * phi[k][0] * m[k][0] for k in range(25)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
+            #x_tilde[n][1] = sum([(mu[k] ** n) * phi[k][0] * m[k][1] for k in range(25)]).real
+
+            x_tilde[n][0] = sum([phi[k][n] * m[k][0] for k in range(25)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
+            x_tilde[n][1] = sum([phi[k][n] * m[k][1] for k in range(25)]).real
 
         x_data = x_data.detach().numpy()
         E_recon = (inv_N * sum([abs(x_data[n][0] - x_tilde[n][0]) ** 2 + abs(x_data[n][1] - x_tilde[n][1]) ** 2

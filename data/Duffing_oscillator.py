@@ -33,7 +33,7 @@ filename_val = filenamePrefix + '_val_x.csv'
 make_csv(filename_val, X_val)
 
 seed = 100
-X_train = Duffing_oscillator_ODE(x1range, x2range, round(1 * numICs), tSpan, seed)
+X_train = Duffing_oscillator_ODE(x1range, x2range, 100000, tSpan, seed)
 filename_train = filenamePrefix + '_train_x.csv'
 make_csv(filename_train, X_train)
 
