@@ -21,14 +21,15 @@ def J(K, theta):
     pass
 
 
-lambda_ = 1e-5 # 1e-6
-I = torch.eye(25, 25)
+lambda_ = 1e-5  # 1e-6
+
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
 epsilon = 0.1
 
 d = 2
-l = 50 # 70
-M = 22  # 22
+l = 334 # 70
+M = 77  # 22
+I = torch.eye(M + 3, M + 3)
 
 net = nn.Sequential(
     nn.Linear(d, l),
@@ -41,7 +42,7 @@ net = nn.Sequential(
     nn.Linear(l, M),
 )
 # optimizer = optim.SGD(net.parameters(), lr=1e-3)
-optimizer = optim.Adam(net.parameters(), lr=1e-4)  # 1e-5
+optimizer = optim.Adam(net.parameters(), lr=1e-3)  # 1e-5
 loss_fn = nn.MSELoss()  # J(K, theta)
 
 def data_Preprocessing(tr_val_te):
@@ -73,8 +74,8 @@ def graph(y, st):
     plt.show()
 
 
-width = 51 #11
-inv_N = 1/50#0.1
+width = 11 #11
+inv_N = 1/10#0.1
 # while J(K, theta) > epsilon:
 x = []
 y = []
@@ -85,12 +86,12 @@ K_tilde = []
 
 """netを学習"""
 data = data_Preprocessing("train")
-data = np.loadtxt('./data/E_recon_50.csv', delimiter=',', dtype=np.float64)
-data = torch.tensor(data, dtype=torch.float32)
+"""data = np.loadtxt('./data/E_recon_50.csv', delimiter=',', dtype=np.float64)
+data = torch.tensor(data, dtype=torch.float32)"""
 # if tr_val_te != "train":
 count = 0
 for _ in range(1):
-    while count < 10000:
+    while count < 1000:
         optimizer.zero_grad()
 
         x_data = data[count * width:count * width + width - 1]
@@ -165,7 +166,7 @@ for tr_val_te in ["E_recon_50"]:
     width = 51
     """Bを計算，X=BΨ"""
     X25 = data[0].view(2, -1)
-    for i in range(1, 25):
+    for i in range(1, M + 3):
         x2_data = data[width * i].view(2, -1)
         X25 = torch.cat([X25, x2_data], dim=1)
 
@@ -173,13 +174,13 @@ for tr_val_te in ["E_recon_50"]:
     tmp = data[0].detach().tolist() + [0.1]  # [i + [0.1] for i in data[0].detach().tolist()]
     fixed_sai1 = torch.tensor(tmp, dtype=torch.float32)
     Sai = torch.cat([Sai, fixed_sai1])
-    Sai = Sai.view(25, -1)
-    for i in range(1, 25):
+    Sai = Sai.view(M + 3, -1)
+    for i in range(1, M + 3):
         sai = net(data[width * i])
         tmp = data[width * i].detach().tolist() + [0.1]
         fixed_sai = torch.tensor(tmp, dtype=torch.float32)
         sai = torch.cat([sai, fixed_sai])
-        sai = sai.view(25, -1)
+        sai = sai.view(M + 3, -1)
         Sai = torch.cat([Sai, sai], dim=1)
 
     # Sai = torch.transpose(Sai, 0, 1)
@@ -210,8 +211,8 @@ for tr_val_te in ["E_recon_50"]:
             #x_tilde[n][0] = sum([(mu[k] ** n) * phi[k][0] * m[k][0] for k in range(25)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
             #x_tilde[n][1] = sum([(mu[k] ** n) * phi[k][0] * m[k][1] for k in range(25)]).real
 
-            x_tilde[n][0] = sum([phi[k][n] * m[k][0] for k in range(25)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
-            x_tilde[n][1] = sum([phi[k][n] * m[k][1] for k in range(25)]).real
+            x_tilde[n][0] = sum([phi[k][n] * m[k][0] for k in range(M + 3)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
+            x_tilde[n][1] = sum([phi[k][n] * m[k][1] for k in range(M + 3)]).real
 
         x_data = x_data.detach().numpy()
         E_recon = (inv_N * sum([abs(x_data[n][0] - x_tilde[n][0]) ** 2 + abs(x_data[n][1] - x_tilde[n][1]) ** 2
@@ -237,17 +238,17 @@ for count in range(I_number):
     x_data = data[count * width:count * width + width]
     pred_sai = net(x_data)  # count * 50 : count * 50 + 50
 
-    for j in range(25):
+    for j in range(M + 3):
         if j < 22:
             phi_list[j][count] = pred_sai[0][j].detach().numpy()
             y_phi_list[j][count] = pred_sai[1][j].detach().numpy()
-        elif j == 22:
+        elif j == M:
             phi_list[j][count] = x_data[0][0].detach().numpy()
             y_phi_list[j][count] = x_data[1][0].detach().numpy()
-        elif j == 23:
+        elif j == M + 1:
             phi_list[j][count] = x_data[0][1].detach().numpy()
             y_phi_list[j][count] = x_data[1][1].detach().numpy()
-        elif j == 24:
+        elif j == M + 2:
             phi_list[j][count] = 0.1
             y_phi_list[j][count] = 0.1
 
@@ -255,8 +256,8 @@ for count in range(I_number):
 phi_list = phi_list
 y_phi_list = y_phi_list
 """E_eigfunc_jを計算"""
-E_eigfunc = [0] * 25
-for j in range(25):
+E_eigfunc = [0] * (M + 3)
+for j in range(M + 3):
     E_eigfunc[j] = np.sqrt(1 / I_number * sum([abs(y_phi_list[j][count] - mu[j] * phi_list[j][count]) ** 2
                                    for count in range(I_number)]))
     print("E_eigfunc", E_eigfunc[j])
