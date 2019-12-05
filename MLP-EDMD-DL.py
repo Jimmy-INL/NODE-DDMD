@@ -207,12 +207,13 @@ for tr_val_te in ["E_recon_50"]:
         phi = xi.dot(sai_T)
 
         x_tilde = [[0, 0] for _ in range(width - 1)]  # [[0, 0]] * (width - 1)
+        x_tilde_phi = [[0, 0] for _ in range(width - 1)]
         for n in range(width - 1):
-            #x_tilde[n][0] = sum([(mu[k] ** n) * phi[k][0] * m[k][0] for k in range(25)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
-            #x_tilde[n][1] = sum([(mu[k] ** n) * phi[k][0] * m[k][1] for k in range(25)]).real
+            x_tilde[n][0] = sum([(mu[k] ** n) * phi[k][0] * m[k][0] for k in range(M + 3)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
+            x_tilde[n][1] = sum([(mu[k] ** n) * phi[k][0] * m[k][1] for k in range(M + 3)]).real
 
-            x_tilde[n][0] = sum([phi[k][n] * m[k][0] for k in range(M + 3)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
-            x_tilde[n][1] = sum([phi[k][n] * m[k][1] for k in range(M + 3)]).real
+            x_tilde_phi[n][0] = sum([phi[k][n] * m[k][0] for k in range(M + 3)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
+            x_tilde_phi[n][1] = sum([phi[k][n] * m[k][1] for k in range(M + 3)]).real
 
         x_data = x_data.detach().numpy()
         E_recon = (inv_N * sum([abs(x_data[n][0] - x_tilde[n][0]) ** 2 + abs(x_data[n][1] - x_tilde[n][1]) ** 2
@@ -220,9 +221,12 @@ for tr_val_te in ["E_recon_50"]:
         print("E_recon", E_recon)
 
         count += 1
-        plt.plot(x_data[:, 0])  # 実データ，青
+        plt.plot(x_data[:, 0], label="correct")  # 実データ，青
         x_tilde_0 = [i for i, j in x_tilde]
-        plt.plot(x_tilde_0)  # 予測，オレンジ
+        #plt.plot(x_tilde_0, label="predict")  # 予測，オレンジ
+        x_tilde_phi_0 = [i for i, j in x_tilde_phi]
+        plt.plot(x_tilde_phi_0, label="phi_pred")  # 予測Φ，緑
+        plt.legend()
         plt.show()
 
 
