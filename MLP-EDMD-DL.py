@@ -91,7 +91,7 @@ data = torch.tensor(data, dtype=torch.float32)"""
 # if tr_val_te != "train":
 count = 0
 for _ in range(1):
-    while count < 1000:
+    while count < 2000:
         optimizer.zero_grad()
 
         x_data = data[count * width:count * width + width - 1]
@@ -186,7 +186,7 @@ for tr_val_te in ["E_recon_50"]:
     # Sai = torch.transpose(Sai, 0, 1)
     B = torch.mm(X25, torch.inverse(Sai))
     B = B.detach().numpy()
-
+    K = K.detach().numpy()
     while count < 1000:
         width = 51
         x_data = data[count * width:count * width + width - 1]  # N = 10
@@ -195,20 +195,28 @@ for tr_val_te in ["E_recon_50"]:
         sai = torch.cat([sai, fixed_sai], dim=1).detach().numpy()
         sai_T = sai.T
         """E_reconを計算"""
+
         mu, xi, zeta = la.eig(K, left=True, right=True)
+
+        print(mu[1] * zeta[:, 1] - K.dot(zeta[:, 1]))
+        print(mu[1] * xi[:, 1].T - xi[:, 1].T.dot(K))
 
         mu_real = [i.real for i in mu]
         mu_imag = [i.imag for i in mu]
         plt.scatter(mu_real, mu_imag)
         plt.show()
 
-        m = B.dot(zeta.T)  # (xi.T.dot(B)).T  # 本当はエルミート
+        m = B.dot(zeta)  # (xi.T.dot(B)).T  # 本当はエルミート
         m = m.T
-        phi = xi.dot(sai_T)
+        phi = (xi).dot(sai_T)
 
         x_tilde = [[0, 0] for _ in range(width - 1)]  # [[0, 0]] * (width - 1)
         x_tilde_phi = [[0, 0] for _ in range(width - 1)]
-        for n in range(width - 1):
+        x_tilde[0][0] = x_data[0][0]
+        x_tilde[0][1] = x_data[0][1]
+        x_tilde_phi[0][0] = x_data[0][0]
+        x_tilde_phi[0][1] = x_data[0][1]
+        for n in range(1, width - 1):
             x_tilde[n][0] = sum([(mu[k] ** n) * phi[k][0] * m[k][0] for k in range(M + 3)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
             x_tilde[n][1] = sum([(mu[k] ** n) * phi[k][0] * m[k][1] for k in range(M + 3)]).real
 
@@ -223,9 +231,9 @@ for tr_val_te in ["E_recon_50"]:
         count += 1
         plt.plot(x_data[:, 0], label="correct")  # 実データ，青
         x_tilde_0 = [i for i, j in x_tilde]
-        #plt.plot(x_tilde_0, label="predict")  # 予測，オレンジ
+        plt.plot(x_tilde_0, label="predict")  # 予測，オレンジ
         x_tilde_phi_0 = [i for i, j in x_tilde_phi]
-        plt.plot(x_tilde_phi_0, label="phi_pred")  # 予測Φ，緑
+        #plt.plot(x_tilde_phi_0, label="phi_pred")  # 予測Φ，緑
         plt.legend()
         plt.show()
 
