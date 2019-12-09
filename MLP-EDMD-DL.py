@@ -21,14 +21,14 @@ def J(K, theta):
     pass
 
 
-lambda_ = 1e-5  # 1e-6
+lambda_ = 1e-6  # 1e-6
 
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
 epsilon = 0.1
 
 d = 2
-l = 334 # 70
-M = 77  # 22
+l = 70  # 70
+M = 22 # 22
 I = torch.eye(M + 3, M + 3)
 
 net = nn.Sequential(
@@ -42,7 +42,7 @@ net = nn.Sequential(
     nn.Linear(l, M),
 )
 # optimizer = optim.SGD(net.parameters(), lr=1e-3)
-optimizer = optim.Adam(net.parameters(), lr=1e-3)  # 1e-5
+optimizer = optim.Adam(net.parameters(), lr=1e-5)  # 1e-5
 loss_fn = nn.MSELoss()  # J(K, theta)
 
 def data_Preprocessing(tr_val_te):
@@ -91,7 +91,7 @@ data = torch.tensor(data, dtype=torch.float32)"""
 # if tr_val_te != "train":
 count = 0
 for _ in range(1):
-    while count < 500:
+    while count < 1000:
         optimizer.zero_grad()
 
         x_data = data[count * width:count * width + width - 1]
@@ -202,11 +202,12 @@ for tr_val_te in ["E_recon_50"]:
         # mu z = K.T z
         # mu z.T = z.T K，xi = z.T
         mu2, _, z = la.eig(K.T, left=True, right=True)
-
+        print(mu[0:20])
+        print(mu2[0:20])
         #print(mu2[1] * z[:, 1].T - z[:, 1].T.dot(K))
 
-        print(mu[1] * zeta[:, 1] - K.dot(zeta[:, 1]))
-        print(mu[1] * xi[:, 1].T - xi[:, 1].T.dot(K))
+        #print(mu[1] * zeta[:, 1] - K.dot(zeta[:, 1]))
+        #print(mu[1] * xi[:, 1].T - xi[:, 1].T.dot(K))
 
         mu_real = [i.real for i in mu]
         mu_imag = [i.imag for i in mu]
@@ -215,6 +216,7 @@ for tr_val_te in ["E_recon_50"]:
 
         m = B.dot(zeta)  # (xi.T.dot(B)).T  # 本当はエルミート
         m = m.T
+        # sai_T = torch.rand(M + 3, width - 1) * 100
         phi = (xi.T).dot(sai_T)
 
         x_tilde = [[0, 0] for _ in range(width - 1)]  # [[0, 0]] * (width - 1)
