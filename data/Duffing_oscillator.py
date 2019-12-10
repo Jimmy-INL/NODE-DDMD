@@ -37,6 +37,25 @@ X_train = Duffing_oscillator_ODE(x1range, x2range, 100000, tSpan, seed)
 filename_train = filenamePrefix + '_train_x.csv'
 make_csv(filename_train, X_train)
 
+
+
+
+
+seed = 100
+X_train = Duffing_oscillator_ODE(x1range, x2range, 100000, np.arange(0, 2.5, 0.25), seed, "x")
+filename_train = filenamePrefix + '_x_train_x.csv'
+make_csv(filename_train, X_train)
+seed = 100
+X_train = Duffing_oscillator_ODE(x1range, x2range, 100000, tSpan, seed, "y")
+filename_train = filenamePrefix + '_y_train_x.csv'
+make_csv(filename_train, X_train)
+
+
+
+
+
+
+
 seed = 18
 X_test = Duffing_oscillator_ODE([-1, 1], [-1, 1], round(1 * numICs), tSpan, seed)
 filename_test = filenamePrefix + '_train18_x.csv'

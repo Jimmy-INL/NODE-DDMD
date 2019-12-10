@@ -4,7 +4,7 @@ from numpy.random import *
 from scipy.integrate import odeint
 
 
-def Duffing_oscillator_ODE(x1range, x2range, numICs, tSpan, seed,):  # function X = PendulumFn(x1range, x2range, numICs, tSpan, seed, max_potential)
+def Duffing_oscillator_ODE(x1range, x2range, numICs, tSpan, seed, type="z"):  # function X = PendulumFn(x1range, x2range, numICs, tSpan, seed, max_potential)
     # try some initial conditions for x1, x2
     np.random.seed(seed=seed)
 
@@ -33,16 +33,34 @@ def Duffing_oscillator_ODE(x1range, x2range, numICs, tSpan, seed,):  # function 
     """ic = [x1, x2]
     temp = odeint(dynsys, ic, tSpan)
     X = temp"""
-    count = 1
-    for j in range(100 * numICs):  # j = 1:100*numICs
-        x1 = uniform(x1range[0], x1range[1])
-        x2 = uniform(x2range[0], x2range[1])
-        ic = [x1, x2]
-        temp = odeint(dynsys, ic, tSpan)
-        # [T, temp] = odeint(dynsys, ic, tSpan)
+    if type == "y":
+        lenT = len(tSpan) - 1
+        count = 1
+        for j in range(100 * numICs):  # j = 1:100*numICs
+            x1 = uniform(x1range[0], x1range[1])
+            x2 = uniform(x2range[0], x2range[1])
+            ic = [x1, x2]
+            temp = odeint(dynsys, ic, tSpan)
+            # [T, temp] = odeint(dynsys, ic, tSpan)
+            temp = temp[1:]
 
-        X[(count - 1) * lenT: lenT + (count - 1) * lenT, :] = temp
-        if count == numICs:
-            break
-        count = count + 1
-    return X
+            X[(count - 1) * lenT: lenT + (count - 1) * lenT, :] = temp
+            if count == numICs:
+                break
+            count = count + 1
+        return X
+
+    else:
+        count = 1
+        for j in range(100 * numICs):  # j = 1:100*numICs
+            x1 = uniform(x1range[0], x1range[1])
+            x2 = uniform(x2range[0], x2range[1])
+            ic = [x1, x2]
+            temp = odeint(dynsys, ic, tSpan)
+            # [T, temp] = odeint(dynsys, ic, tSpan)
+
+            X[(count - 1) * lenT: lenT + (count - 1) * lenT, :] = temp
+            if count == numICs:
+                break
+            count = count + 1
+        return X

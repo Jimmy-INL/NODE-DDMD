@@ -4,7 +4,15 @@ import torch.optim as optim
 
 import numpy as np
 from scipy import linalg as la
+A = np.array([[1, 2, 3], [3, 4, 6]])
+print(A ** 2)
 
+
+print(torch.sum(torch.tensor([[1, 2], [3, 4]])))
+
+p = [2, 4, 5, 6]
+q = []
+print(p[3])
 """x = torch.randn(2,2)
 y = x + 2
 print(y.grad_fn)#None / xのrequires_gradがFalseである(演算が追跡されていない)ため

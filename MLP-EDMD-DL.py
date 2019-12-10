@@ -27,9 +27,13 @@ lambda_ = 1e-6  # 1e-6
 epsilon = 0.1
 
 d = 2
-l = 70  # 70
-M = 22 # 22
+l = 90  # 70
+M = 52  # 22
 I = torch.eye(M + 3, M + 3)
+
+N = 1000
+#width = 11  #11
+inv_N = 1/N  #0.1
 
 net = nn.Sequential(
     nn.Linear(d, l),
@@ -46,7 +50,7 @@ optimizer = optim.Adam(net.parameters(), lr=1e-5)  # 1e-5
 loss_fn = nn.MSELoss()  # J(K, theta)
 
 def data_Preprocessing(tr_val_te):
-    data = np.loadtxt(('./data/%s_%s_x.csv' % (params['data_name'], tr_val_te)), delimiter=',', dtype=np.float64)
+    data = np.loadtxt(('./data/%s_%s_x.csv' % (params['data_name'], tr_val_te)), delimiter=',', dtype=np.float64)[:N]
     # np.loadtxt(('./data/%s_val_x.csv' % (params['data_name'])), delimiter=',', dtype=np.float64)  # ここでデータを読み込む
     data = torch.tensor(data, dtype=torch.float32)
     return data
@@ -74,8 +78,7 @@ def graph(y, st):
     plt.show()
 
 
-width = 11 #11
-inv_N = 1/10#0.1
+
 # while J(K, theta) > epsilon:
 x = []
 y = []
@@ -85,17 +88,19 @@ count = 0
 K_tilde = []
 
 """netを学習"""
-data = data_Preprocessing("train")
+x_data = data_Preprocessing("x_train")
+y_data = data_Preprocessing("y_train")
 """data = np.loadtxt('./data/E_recon_50.csv', delimiter=',', dtype=np.float64)
 data = torch.tensor(data, dtype=torch.float32)"""
 # if tr_val_te != "train":
 count = 0
 for _ in range(1):
-    while count < 1000:
+    while count < 5000:
         optimizer.zero_grad()
 
-        x_data = data[count * width:count * width + width - 1]
-        y_data = data[count * width + 1:count * width + width]  # data[count * width + 1:count * width + width, :]
+        #x_data = data[count * width:count * width + width - 1]  # 0～9，11～20，
+
+        #y_data = data[count * width + 1:count * width + width]  # 1～10，12～21，
         pred_sai = net(x_data)  # count * 50 : count * 50 + 50
         y_pred_sai = net(y_data)
 
@@ -130,12 +135,14 @@ for _ in range(1):
         # Pred = Pred.view(1, -1)
         loss = res
         QWRETY = y_pred_sai_T - Pred  # pred_sai_T
+        PPAP = QWRETY ** 2
+        loss += torch.sum(PPAP)
         # torch.matrix_power(QWRETY)
-        for i in range(width - 1):
+        """for i in range(N):
             # print(QWRETY[i])
             # loss += torch.log(sum([abs(c) for c in QWRETY[i]]))  # 順番逆かも，結果は変わらない
             for c in QWRETY[:, i]:
-                loss += c ** 2
+                loss += c ** 2"""
         """for j in range(len(Pred)):
             for i in y_pred_sai[j] - Pred[j]:
                 loss += torch.log(abs(i))"""
