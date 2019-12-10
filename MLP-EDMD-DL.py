@@ -21,17 +21,17 @@ def J(K, theta):
     pass
 
 
-lambda_ = 1e-6  # 1e-6
+lambda_ = 1e-5  # 1e-6
 
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
 epsilon = 0.1
 
 d = 2
-l = 90  # 70
-M = 52  # 22
+l = 70  # 70
+M = 22  # 22
 I = torch.eye(M + 3, M + 3)
 
-N = 1000
+N = 10000
 #width = 11  #11
 inv_N = 1/N  #0.1
 
@@ -95,7 +95,7 @@ data = torch.tensor(data, dtype=torch.float32)"""
 # if tr_val_te != "train":
 count = 0
 for _ in range(1):
-    while count < 5000:
+    while count < 1000:
         optimizer.zero_grad()
 
         #x_data = data[count * width:count * width + width - 1]  # 0～9，11～20，
@@ -167,10 +167,9 @@ for _ in range(1):
 K = K_tilde # torch.rand(25, 25) #K_tilde
 mu = 0
 for tr_val_te in ["E_recon_50"]:
-    data = np.loadtxt('./data/E_recon_50.csv', delimiter=',', dtype=np.float64)
-    data = torch.tensor(data, dtype=torch.float32)
+    data = data_Preprocessing("x_train")
     count = 0
-    width = 51
+    width = 10
     """Bを計算，X=BΨ"""
     X25 = data[0].view(2, -1)
     for i in range(1, M + 3):
@@ -194,9 +193,11 @@ for tr_val_te in ["E_recon_50"]:
     B = torch.mm(X25, torch.inverse(Sai))
     B = B.detach().numpy()
     K = K.detach().numpy()
+    data = np.loadtxt('./data/E_recon_50.csv', delimiter=',', dtype=np.float64)
+    data = torch.tensor(data, dtype=torch.float32)
+    width = 51
     while count < 1000:
-        width = 51
-        x_data = data[count * width:count * width + width - 1]  # N = 10
+        x_data = data[count * width:count * width + width]  # N = 10
         sai = net(x_data)
         fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
         sai = torch.cat([sai, fixed_sai], dim=1).detach().numpy()
@@ -209,12 +210,14 @@ for tr_val_te in ["E_recon_50"]:
         # mu z = K.T z
         # mu z.T = z.T K，xi = z.T
         mu2, _, z = la.eig(K.T, left=True, right=True)
-        print(mu[0:20])
-        print(mu2[0:20])
+        #print(mu[0:20])
+        #print(mu2[0:20])
         #print(mu2[1] * z[:, 1].T - z[:, 1].T.dot(K))
 
-        #print(mu[1] * zeta[:, 1] - K.dot(zeta[:, 1]))
-        #print(mu[1] * xi[:, 1].T - xi[:, 1].T.dot(K))
+        print(mu[1] * zeta[:, 1] - K.dot(zeta[:, 1]))
+        print(mu[1] * xi[:, 1].T - xi[:, 1].T.dot(K))
+        print(mu[1] * zeta[:, 1], K.dot(zeta[:, 1]))
+        print(mu[1] * xi[:, 1].T, xi[:, 1].T.dot(K))
 
         mu_real = [i.real for i in mu]
         mu_imag = [i.imag for i in mu]
@@ -226,13 +229,14 @@ for tr_val_te in ["E_recon_50"]:
         # sai_T = torch.rand(M + 3, width - 1) * 100
         phi = (xi.T).dot(sai_T)
 
-        x_tilde = [[0, 0] for _ in range(width - 1)]  # [[0, 0]] * (width - 1)
-        x_tilde_phi = [[0, 0] for _ in range(width - 1)]
+        x_tilde = [[0, 0] for _ in range(width)]  # [[0, 0]] * (width - 1)
+        x_tilde_phi = [[0, 0] for _ in range(width)]
         x_tilde[0][0] = x_data[0][0]
         x_tilde[0][1] = x_data[0][1]
         x_tilde_phi[0][0] = x_data[0][0]
         x_tilde_phi[0][1] = x_data[0][1]
-        for n in range(1, width - 1):
+        for n in range(1, width):
+            print((mu[1] ** n) * phi[1][0], phi[1][n])
             x_tilde[n][0] = sum([(mu[k] ** n) * phi[k][0] * m[k][0] for k in range(M + 3)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
             x_tilde[n][1] = sum([(mu[k] ** n) * phi[k][0] * m[k][1] for k in range(M + 3)]).real
 
@@ -241,7 +245,7 @@ for tr_val_te in ["E_recon_50"]:
 
         x_data = x_data.detach().numpy()
         E_recon = (inv_N * sum([abs(x_data[n][0] - x_tilde[n][0]) ** 2 + abs(x_data[n][1] - x_tilde[n][1]) ** 2
-                                for n in range(width - 1)])) ** 0.5
+                                for n in range(width)])) ** 0.5
         print("E_recon", E_recon)
 
         count += 1
