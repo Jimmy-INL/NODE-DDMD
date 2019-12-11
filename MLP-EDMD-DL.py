@@ -21,7 +21,7 @@ def J(K, theta):
     pass
 
 
-lambda_ = 1e-5  # 1e-6
+lambda_ = 1e-6  # 1e-6
 
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
 epsilon = 0.1
@@ -63,7 +63,7 @@ def Frobenius_norm(X):
     M = torch.mm(X, torch.transpose(X, 0, 1))
     return torch.sum(torch.diag(M, 0))
 
-def graph(y, st):
+def graph__________(y, st):
     plots = plt.plot(y)
     plt.legend(plots, st,  # 3つのプロットラベルの設定
                loc='best',  # 線が隠れない位置の指定
@@ -75,6 +75,31 @@ def graph(y, st):
     plt.grid(True)  # 目盛の表示
     plt.tight_layout()  # 全てのプロット要素を図ボックスに収める
     # 描画実行
+    plt.show()
+
+#グラフ
+def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim(1300,)
+    plt.figure()
+    if type == "plot":
+        plt.plot(x, y)
+        plt.title('MLP Model Loss')  # タイトル名
+        plt.xlabel('epoch')
+        plt.ylabel('loss')
+    elif type == "scatter":
+        plt.scatter(x, y)
+        plt.title('Eigenvalue')  # タイトル名
+        plt.xlabel('Re(μ)')
+        plt.ylabel('Im(μ)')
+    elif type == "multi_plot":
+        plt.plot(correct, label="correct")  # 実データ，青
+        plt.plot(predict, label="predict")  # 予測，オレンジ
+        plt.plot(phi_predict, label="phi_predict")  # 予測Φ，緑
+        plt.title("x1_trajectory")
+        plt.xlabel('n')
+        plt.ylabel('x1')
+        plt.legend()
+    plt.savefig("png/" + name + ".png")
+    plt.savefig("eps/" + name + ".eps")
     plt.show()
 
 
@@ -94,8 +119,10 @@ y_data = data_Preprocessing("y_train")
 data = torch.tensor(data, dtype=torch.float32)"""
 # if tr_val_te != "train":
 count = 0
+rotation = 5
+x = [i for i in range(rotation)]
 for _ in range(1):
-    while count < 1000:
+    while count < rotation:
         optimizer.zero_grad()
 
         #x_data = data[count * width:count * width + width - 1]  # 0～9，11～20，
@@ -159,7 +186,7 @@ for _ in range(1):
         optimizer.step()
 
         count += 1
-    graph(y, "train")
+    graph(x, y, "train", "plot")
     count = 0
 
 
@@ -196,34 +223,34 @@ for tr_val_te in ["E_recon_50"]:
     data = np.loadtxt('./data/E_recon_50.csv', delimiter=',', dtype=np.float64)
     data = torch.tensor(data, dtype=torch.float32)
     width = 51
-    while count < 1000:
+
+    mu, xi, zeta = la.eig(K, left=True, right=True)
+
+    # mu zeta = K zeta
+    # mu z = K.T z
+    # mu z.T = z.T K，xi = z.T
+    mu2, _, z = la.eig(K.T, left=True, right=True)
+    # print(mu[0:20])
+    # print(mu2[0:20])
+    # print(mu2[1] * z[:, 1].T - z[:, 1].T.dot(K))
+
+    print(mu[1] * zeta[:, 1] - K.dot(zeta[:, 1]))
+    print(mu[1] * xi[:, 1].T - xi[:, 1].T.dot(K))
+    print(mu[1] * zeta[:, 1], K.dot(zeta[:, 1]))
+    print(mu[1] * xi[:, 1].T, xi[:, 1].T.dot(K))
+
+    mu_real = [i.real for i in mu]
+    mu_imag = [i.imag for i in mu]
+    graph(mu_real, mu_imag, "eigenvalue", "scatter")
+
+    while count < 99:
         x_data = data[count * width:count * width + width]  # N = 10
         sai = net(x_data)
         fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
         sai = torch.cat([sai, fixed_sai], dim=1).detach().numpy()
         sai_T = sai.T
+
         """E_reconを計算"""
-
-        mu, xi, zeta = la.eig(K, left=True, right=True)
-
-        # mu zeta = K zeta
-        # mu z = K.T z
-        # mu z.T = z.T K，xi = z.T
-        mu2, _, z = la.eig(K.T, left=True, right=True)
-        #print(mu[0:20])
-        #print(mu2[0:20])
-        #print(mu2[1] * z[:, 1].T - z[:, 1].T.dot(K))
-
-        print(mu[1] * zeta[:, 1] - K.dot(zeta[:, 1]))
-        print(mu[1] * xi[:, 1].T - xi[:, 1].T.dot(K))
-        print(mu[1] * zeta[:, 1], K.dot(zeta[:, 1]))
-        print(mu[1] * xi[:, 1].T, xi[:, 1].T.dot(K))
-
-        mu_real = [i.real for i in mu]
-        mu_imag = [i.imag for i in mu]
-        plt.scatter(mu_real, mu_imag)
-        plt.show()
-
         m = B.dot(zeta)  # (xi.T.dot(B)).T  # 本当はエルミート
         m = m.T
         # sai_T = torch.rand(M + 3, width - 1) * 100
@@ -249,13 +276,11 @@ for tr_val_te in ["E_recon_50"]:
         print("E_recon", E_recon)
 
         count += 1
-        plt.plot(x_data[:, 0], label="correct")  # 実データ，青
         x_tilde_0 = [i for i, j in x_tilde]
-        plt.plot(x_tilde_0, label="predict")  # 予測，オレンジ
         x_tilde_phi_0 = [i for i, j in x_tilde_phi]
-        plt.plot(x_tilde_phi_0, label="phi_pred")  # 予測Φ，緑
-        plt.legend()
-        plt.show()
+
+        graph([], [], "x1_traj_" + "{stp:02}".format(stp=count), "multi_plot"
+              , x_data[:, 0], x_tilde_0, x_tilde_phi_0)
 
 
 """学習済みのnetを使って，E_eigfuncを計算"""
