@@ -27,7 +27,7 @@ lambda_ = 1e-7  # 1e-6
 epsilon = 0.1
 
 d = 2
-l = 100  # 70
+l = 150  # 70
 M = 22  # 22
 I = torch.eye(M + 3, M + 3)
 
@@ -123,6 +123,8 @@ rotation = 10000
 x = [i for i in range(rotation)]
 for _ in range(1):
     while count < rotation:
+        if count % 100 == 0:
+            print(count)
         optimizer.zero_grad()
 
         #x_data = data[count * width:count * width + width - 1]  # 0～9，11～20，
