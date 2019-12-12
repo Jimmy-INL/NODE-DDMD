@@ -4,6 +4,11 @@ import torch.optim as optim
 
 import numpy as np
 from scipy import linalg as la
+for i in range(4):
+    if i == 2:
+        break
+    print(i)
+
 A = np.array([[1, 2, 3], [3, 4, 6]])
 print(A ** 2)
 

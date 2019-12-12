@@ -21,13 +21,13 @@ def J(K, theta):
     pass
 
 
-lambda_ = 1e-6  # 1e-6
+lambda_ = 1e-7  # 1e-6
 
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
 epsilon = 0.1
 
 d = 2
-l = 150  # 70
+l = 100  # 70
 M = 22  # 22
 I = torch.eye(M + 3, M + 3)
 
