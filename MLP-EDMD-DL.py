@@ -27,7 +27,7 @@ lambda_ = 1e-6  # 1e-6
 epsilon = 0.1
 
 d = 2
-l = 70  # 70
+l = 150  # 70
 M = 22  # 22
 I = torch.eye(M + 3, M + 3)
 
@@ -46,7 +46,7 @@ net = nn.Sequential(
     nn.Linear(l, M),
 )
 # optimizer = optim.SGD(net.parameters(), lr=1e-3)
-optimizer = optim.Adam(net.parameters(), lr=1e-5)  # 1e-5
+optimizer = optim.Adam(net.parameters(), lr=2e-4)  # 1e-5
 loss_fn = nn.MSELoss()  # J(K, theta)
 
 def data_Preprocessing(tr_val_te):
@@ -63,7 +63,7 @@ def Frobenius_norm(X):
     M = torch.mm(X, torch.transpose(X, 0, 1))
     return torch.sum(torch.diag(M, 0))
 
-def graph__________(y, st):
+"""def graph__________(y, st):
     plots = plt.plot(y)
     plt.legend(plots, st,  # 3つのプロットラベルの設定
                loc='best',  # 線が隠れない位置の指定
@@ -75,7 +75,7 @@ def graph__________(y, st):
     plt.grid(True)  # 目盛の表示
     plt.tight_layout()  # 全てのプロット要素を図ボックスに収める
     # 描画実行
-    plt.show()
+    plt.show()"""
 
 #グラフ
 def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim(1300,)
@@ -119,7 +119,7 @@ y_data = data_Preprocessing("y_train")
 data = torch.tensor(data, dtype=torch.float32)"""
 # if tr_val_te != "train":
 count = 0
-rotation = 5
+rotation = 10000
 x = [i for i in range(rotation)]
 for _ in range(1):
     while count < rotation:
