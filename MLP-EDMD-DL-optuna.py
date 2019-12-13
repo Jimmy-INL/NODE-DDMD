@@ -2,6 +2,7 @@ import os
 import argparse
 import time
 import numpy as np
+import optuna
 
 import torch
 import torch.nn as nn
@@ -15,19 +16,70 @@ from matplotlib import pyplot as plt
 params = {}
 params['data_name'] = 'Duffing_oscillator'
 
+def objective(trial):
+    optimizer.zero_grad()
+    pred_sai = net(x_data)
+    y_pred_sai = net(y_data)
 
+    fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
+    pred_sai = torch.cat([pred_sai, fixed_sai], dim=1)
+    y_fixed_sai = torch.tensor([i + [0.1] for i in y_data.detach().tolist()], dtype=torch.float32)
+    y_pred_sai = torch.cat([y_pred_sai, y_fixed_sai], dim=1)
+
+    pred_sai_T = torch.transpose(pred_sai, 0, 1)
+
+    G = inv_N * torch.mm(pred_sai_T, pred_sai)  # 本当はエルミート
+    A = inv_N * torch.mm(pred_sai_T, y_pred_sai)
+
+    K_tilde = torch.mm(torch.inverse(G + lambda_ * I), A)
+    K_tilde = torch.tensor(K_tilde, requires_grad=False)
+
+    Pred = torch.mm(K_tilde, pred_sai_T)
+    y_pred_sai_T = torch.transpose(y_pred_sai, 0, 1)
+    res = lambda_ * Frobenius_norm(K_tilde)
+
+    loss = res
+    QWRETY = y_pred_sai_T - Pred  # pred_sai_T
+    PPAP = QWRETY ** 2
+    loss += torch.sum(PPAP)
+    y.append(loss)
+    print("loss", loss)
+    # print(net.parameters().item())
+    loss.backward()
+    optimizer.step()
+
+    params = {
+        'objective': 'binary',
+        'max_bin': trial.suggest_int('max_bin'),
+        'learning_rate': trial.suggest_int('learning_rate'),
+        'num_leaves': trial.suggest_int('num_leaves'),
+    }
+
+    return loss
+
+study = optuna.create_study(sampler=optuna.samplers.RandomSampler(seed=0))
+study.optimize(objective, n_trials=40)
+
+#最適化したハイパーパラメータの結果
+study.best_params
+
+#最適化後の目的関数の値
+study.best_value
+
+#全試行過程
+study.trials
 
 def J(K, theta):
     pass
 
 
-lambda_ = 1e-7  # 1e-6
+lambda_ = 1e-6  # 1e-6
 
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
 epsilon = 0.1
 
 d = 2
-l = 150  # 70
+l = 100  # 70
 M = 22  # 22
 I = torch.eye(M + 3, M + 3)
 
@@ -92,7 +144,7 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
         plt.ylabel('Im(μ)')
     elif type == "multi_plot":
         plt.plot(correct, label="correct")  # 実データ，青
-        # plt.plot(predict, label="predict")  # 予測，オレンジ
+        plt.plot(predict, label="predict")  # 予測，オレンジ
         plt.plot(phi_predict, label="phi_predict")  # 予測Φ，緑
         plt.title("x1_trajectory")
         plt.xlabel('n')
@@ -119,73 +171,13 @@ y_data = data_Preprocessing("y_train")
 data = torch.tensor(data, dtype=torch.float32)"""
 # if tr_val_te != "train":
 count = 0
-rotation = 3000
+rotation = 5000
 x = [i for i in range(rotation)]
 for _ in range(1):
     while count < rotation:
         if count % 100 == 0:
             print(count)
-        optimizer.zero_grad()
 
-        #x_data = data[count * width:count * width + width - 1]  # 0～9，11～20，
-
-        #y_data = data[count * width + 1:count * width + width]  # 1～10，12～21，
-        pred_sai = net(x_data)  # count * 50 : count * 50 + 50
-        y_pred_sai = net(y_data)
-
-        #fixed_sai = torch.cat([x_data, torch.tensor([[0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1]])], dim=1)
-        #y_fixed_sai = torch.cat([y_data, torch.tensor([[0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1]])], dim=1)
-
-        fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
-        pred_sai = torch.cat([pred_sai, fixed_sai], dim=1)
-        y_fixed_sai = torch.tensor([i + [0.1] for i in y_data.detach().tolist()], dtype=torch.float32)
-        y_pred_sai = torch.cat([y_pred_sai, y_fixed_sai], dim=1)
-
-        pred_sai_T = torch.transpose(pred_sai, 0, 1)
-
-        G = inv_N * torch.mm(pred_sai_T, pred_sai)  # 本当はエルミート
-        A = inv_N * torch.mm(pred_sai_T, y_pred_sai)
-
-        # K_tilde = torch.mm(p_inv(G + lambda_ * I), A)  # pinverseを使うとおかしくなるのでp_invで代用
-        K_tilde = torch.mm(torch.inverse(G + lambda_ * I), A)
-        K_tilde = torch.tensor(K_tilde, requires_grad=False)
-
-        Pred = torch.mm(K_tilde, pred_sai_T)
-        # Pred = torch.transpose(Pred, 0, 1)
-
-        # y_pred_sai = y_pred_sai[0]
-        # y_pred_sai = torch.tensor(y_pred_sai)
-        # y_pred_sai = torch.tensor(y_pred_sai.detach().numpy(), dtype=torch.float32)
-        y_pred_sai_T = torch.transpose(y_pred_sai, 0, 1)
-        # res = torch.tensor(lambda_ * torch.mm(K_tilde, K_tilde), dtype=torch.float32)
-        res = lambda_ * Frobenius_norm(K_tilde)
-
-        # t = torch.transpose(pred_sai_T, 0, 1)
-        # Pred = Pred.view(1, -1)
-        loss = res
-        QWRETY = y_pred_sai_T - Pred  # pred_sai_T
-        PPAP = QWRETY ** 2
-        loss += torch.sum(PPAP)
-        # torch.matrix_power(QWRETY)
-        """for i in range(N):
-            # print(QWRETY[i])
-            # loss += torch.log(sum([abs(c) for c in QWRETY[i]]))  # 順番逆かも，結果は変わらない
-            for c in QWRETY[:, i]:
-                loss += c ** 2"""
-        """for j in range(len(Pred)):
-            for i in y_pred_sai[j] - Pred[j]:
-                loss += torch.log(abs(i))"""
-        # loss = loss_fn(x_tilde, data_val[count + 1, :])  # count * 50 + 1 : count * 50 + 51
-        # loss = loss_fn(pred_sai, y_pred_sai)
-        # loss = loss_fn(Pred, y_pred_sai_T)
-        # loss =torch.tensor(1, requires_grad=True)
-        # x.append(rout)
-        # if loss < 1.5:
-        y.append(loss)
-        print("loss", loss)
-        # print(net.parameters().item())
-        loss.backward()
-        optimizer.step()
 
         count += 1
     graph(x, y, "train", "plot")
