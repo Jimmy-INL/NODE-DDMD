@@ -12,8 +12,7 @@ from scipy import linalg as la
 
 from matplotlib import pyplot as plt
 
-params = {}
-params['data_name'] = 'Duffing_oscillator'
+data_name = 'Linear'  # 'Duffing_oscillator'
 
 
 
@@ -21,7 +20,7 @@ def J(K, theta):
     pass
 
 
-lambda_ = 1e-7  # 1e-6
+lambda_ = 1e-10  # 1e-6
 
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
 epsilon = 0.1
@@ -46,11 +45,11 @@ net = nn.Sequential(
     nn.Linear(l, M),
 )
 # optimizer = optim.SGD(net.parameters(), lr=2e-4)
-optimizer = optim.Adam(net.parameters(), lr=1e-4)  # 1e-5
+optimizer = optim.Adam(net.parameters(), lr=1e-5)  # 1e-5
 loss_fn = nn.MSELoss()  # J(K, theta)
 
 def data_Preprocessing(tr_val_te):
-    data = np.loadtxt(('./data/%s_%s_x.csv' % (params['data_name'], tr_val_te)), delimiter=',', dtype=np.float64)[:N]
+    data = np.loadtxt(('./data/%s_%s.csv' % (data_name, tr_val_te)), delimiter=',', dtype=np.float64)[:N]
     # np.loadtxt(('./data/%s_val_x.csv' % (params['data_name'])), delimiter=',', dtype=np.float64)  # ここでデータを読み込む
     data = torch.tensor(data, dtype=torch.float32)
     return data
@@ -90,10 +89,11 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
         plt.title('Eigenvalue')  # タイトル名
         plt.xlabel('Re(μ)')
         plt.ylabel('Im(μ)')
+        plt.grid(True)  # 目盛の表示
     elif type == "multi_plot":
         plt.plot(correct, label="correct")  # 実データ，青
-        # plt.plot(predict, label="predict")  # 予測，オレンジ
-        plt.plot(phi_predict, label="phi_predict")  # 予測Φ，緑
+        plt.plot(predict, label="predict")  # 予測，オレンジ
+        plt.plot(phi_predict, label="predict")  # 予測Φ，緑
         plt.title("x1_trajectory")
         plt.xlabel('n')
         plt.ylabel('x1')
@@ -113,13 +113,13 @@ count = 0
 K_tilde = []
 
 """netを学習"""
-x_data = data_Preprocessing("x_train")
-y_data = data_Preprocessing("y_train")
+x_data = data_Preprocessing("train_x")
+y_data = data_Preprocessing("train_y")
 """data = np.loadtxt('./data/E_recon_50.csv', delimiter=',', dtype=np.float64)
 data = torch.tensor(data, dtype=torch.float32)"""
 # if tr_val_te != "train":
 count = 0
-rotation = 3000
+rotation = 1000
 x = [i for i in range(rotation)]
 for _ in range(1):
     while count < rotation:
@@ -196,7 +196,7 @@ for _ in range(1):
 K = K_tilde # torch.rand(25, 25) #K_tilde
 mu = 0
 for tr_val_te in ["E_recon_50"]:
-    data = data_Preprocessing("x_train")
+    data = data_Preprocessing("train_x")
     count = 0
     width = 10
     """Bを計算，X=BΨ"""
@@ -222,9 +222,8 @@ for tr_val_te in ["E_recon_50"]:
     B = torch.mm(X25, torch.inverse(Sai))
     B = B.detach().numpy()
     K = K.detach().numpy()
-    data = np.loadtxt('./data/E_recon_50.csv', delimiter=',', dtype=np.float64)
-    data = torch.tensor(data, dtype=torch.float32)
-    width = 51
+    data = data_Preprocessing("train_x")  # E_recon_50
+    width = 10
 
     mu, xi, zeta = la.eig(K, left=True, right=True)
 
@@ -287,8 +286,7 @@ for tr_val_te in ["E_recon_50"]:
 
 """学習済みのnetを使って，E_eigfuncを計算"""
 I_number = 1000
-data = np.loadtxt('./data/E_eigfunc_confirm.csv', delimiter=',', dtype=np.float64)
-data = torch.tensor(data, dtype=torch.float32)
+data = data_Preprocessing("E_eigfunc_confirm")
 width = 2
 phi_list = [[0 for count in range(I_number)] for j in range(25)]
 y_phi_list = [[0 for count in range(I_number)] for j in range(25)]
