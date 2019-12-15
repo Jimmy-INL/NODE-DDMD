@@ -12,7 +12,7 @@ from scipy import linalg as la
 
 from matplotlib import pyplot as plt
 
-data_name = 'Linear'  # 'Duffing_oscillator'
+data_name = 'Discrete_Linear'  # 'Duffing_oscillator', 'Linear'
 
 
 
@@ -20,7 +20,7 @@ def J(K, theta):
     pass
 
 
-lambda_ = 1e-10  # 1e-6
+lambda_ = 1e-3  # 1e-6
 
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
 epsilon = 0.1
