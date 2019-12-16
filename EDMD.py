@@ -86,7 +86,7 @@ for i in range(5):
     k.append(t)
 r = np.sum(k, axis=0)"""
 N = 10000
-data_name = 'Discrete_Linear'  # 'Duffing_oscillator' , 'Linear'
+data_name = 'Duffing_oscillator'  #  , 'Linear''Discrete_Linear'
 def data_Preprocessing(tr_val_te):
     data = np.loadtxt(('./data/%s_%s.csv' % (data_name, tr_val_te)), delimiter=',', dtype=np.float64)[:N]
     return data
@@ -171,7 +171,20 @@ for i in range(1, M + 3):
 
 
 B = X25.T.dot(np.linalg.inv(rrr.T))
-data = data_Preprocessing("train_x")  # E_recon_50
+
+X25 = data[0].reshape(1,2)
+for i in range(1, M + 3):
+    tmp = x_data[2 * i]
+    X25 = np.vstack((X25, tmp))
+
+rrr = np.array(sai(x_data[0, 0], x_data[0, 1])).reshape(1,25)
+for i in range(1, M + 3):
+    tmp = np.array(sai(x_data[2 * i, 0], x_data[2 * i, 1]))
+    rrr = np.vstack((rrr, tmp))
+
+C = X25.T.dot(np.linalg.inv(rrr.T))
+
+# data = data_Preprocessing("train_x")  # E_recon_50
 width = 10
 
 mu, xi, zeta = la.eig(K, left=True, right=True)
@@ -184,20 +197,31 @@ while count < 99:
         Sai = np.vstack((Sai, tmp))
     sai_T = Sai.T
 
+    # np.conjugate(A.T)  # 転置とって、複素共役！
     """E_reconを計算"""
     m = B.dot(zeta)  # (xi.T.dot(B)).T  # 本当はエルミート
     m = m.T
     # sai_T = torch.rand(M + 3, width - 1) * 100
+    xi_T = xi.T
     phi = (xi.T).dot(sai_T)
-
+    """ m = (xi.dot(B)).T
+     phi = Sai.dot(zeta)"""
     x_tilde = [[0, 0] for _ in range(width)]  # [[0, 0]] * (width - 1)
     x_tilde_phi = [[0, 0] for _ in range(width)]
     x_tilde[0][0] = x_data[0][0]
     x_tilde[0][1] = x_data[0][1]
     x_tilde_phi[0][0] = x_data[0][0]
     x_tilde_phi[0][1] = x_data[0][1]
+    x00 = sum([(mu[k] ** 0) * phi[k][0] * m[k][0] for k in range(M + 3)]).real
+    x01 = sum([(mu[k] ** 0) * phi[k][0] * m[k][1] for k in range(M + 3)]).real
+
+    # ab = x00 / x_data[0][0]
+    # ab2 = x01 / x_data[0][1]
+
+
     for n in range(1, width):
         print((mu[1] ** n) * phi[1][0], phi[1][n])
+        F = [(mu[k] ** n) * phi[k][0] * m[k][0] for k in range(M + 3)]
         x_tilde[n][0] = sum([(mu[k] ** n) * phi[k][0] * m[k][0] for k in range(M + 3)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
         x_tilde[n][1] = sum([(mu[k] ** n) * phi[k][0] * m[k][1] for k in range(M + 3)]).real
 

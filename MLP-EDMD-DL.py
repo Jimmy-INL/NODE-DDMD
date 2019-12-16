@@ -20,7 +20,7 @@ def J(K, theta):
     pass
 
 
-lambda_ = 1e-3  # 1e-6
+lambda_ = 1e-9  # 1e-6
 
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
 epsilon = 0.1
@@ -244,7 +244,7 @@ for tr_val_te in ["E_recon_50"]:
     mu_imag = [i.imag for i in mu]
     graph(mu_real, mu_imag, "eigenvalue", "scatter")
 
-    while count < 99:
+    while count < 9:
         x_data = data[count * width:count * width + width]  # N = 10
         sai = net(x_data)
         fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
@@ -294,7 +294,7 @@ y_phi_list = [[0 for count in range(I_number)] for j in range(25)]
 for count in range(I_number):
     x_data = data[count * width:count * width + width]
     pred_sai = net(x_data)  # count * 50 : count * 50 + 50
-
+    pred_sai = (xi.T).dot(pred_sai.T)
     for j in range(M + 3):
         if j < 22:
             phi_list[j][count] = pred_sai[0][j].detach().numpy()

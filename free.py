@@ -4,6 +4,8 @@ import torch.optim as optim
 
 import numpy as np
 from scipy import linalg as la
+A = np.array([[1, -1], [0.02, 0.7]])
+mu, hidari, migi = la.eig(A, left=True, right=True)
 for i in range(4):
     if i == 2:
         break
