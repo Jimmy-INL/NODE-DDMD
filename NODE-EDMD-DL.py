@@ -2,6 +2,8 @@ import os
 import argparse
 import time
 import numpy as np
+import torchsummary
+import modelsummary
 
 import torch
 import torch.nn as nn
@@ -15,10 +17,10 @@ from torchdiffeq import odeint
 
 
 d = 2
-l = 100
+l = 150
 M = 22  # 22
 
-middle = 100
+middle = 50
 
 class ODEFunc(nn.Module):
 
@@ -99,11 +101,25 @@ def total_net(data):
 
 tSpan = np.arange(1, 1 + 0.1, 5)
 tSpan = torch.from_numpy(tSpan)
-
 # intSpan = torch.tensor([i for i in range(1, 26)], dtype=torch.float32)
 width = 11  # 11
 inv_N = 1/10  # 0.1
 min_loss = float("INF")
+
+# パラメータカウント
+params = 0
+for p in before_net.parameters():
+    if p.requires_grad:
+        params += p.numel()
+for p in net.parameters():
+    if p.requires_grad:
+        params += p.numel()
+for p in after_net.parameters():
+    if p.requires_grad:
+        params += p.numel()
+print("parameterの数", params)
+exit()
+
 # while J(K, theta) > epsilon:
 for count in range(1000):
     optimizer.zero_grad()

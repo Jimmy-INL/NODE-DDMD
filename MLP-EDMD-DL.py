@@ -6,11 +6,14 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torchsummary
+import modelsummary
 
 import numpy as np
 from scipy import linalg as la
 
 from matplotlib import pyplot as plt
+
 
 data_name = 'Discrete_Linear'  # 'Duffing_oscillator', 'Linear'
 
@@ -37,7 +40,7 @@ inv_N = 1/N  #0.1
 net = nn.Sequential(
     nn.Linear(d, l),
     nn.Tanh(),
-    nn.Linear(l, l),
+nn.Linear(l, l),
     nn.Tanh(),
     #nn.Dropout(0.5),
     nn.Linear(l, l),
@@ -121,6 +124,18 @@ data = torch.tensor(data, dtype=torch.float32)"""
 count = 0
 rotation = 1000
 x = [i for i in range(rotation)]
+
+# パラメータカウント
+params = 0
+for p in net.parameters():
+    if p.requires_grad:
+        params += p.numel()
+print("parameterの数", params)
+
+# summary(net, (2, 10000, ))
+# modelsummary.summary(net, d, M)
+exit()
+
 for _ in range(1):
     while count < rotation:
         if count % 100 == 0:
