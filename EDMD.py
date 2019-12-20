@@ -12,6 +12,7 @@ from numpy.linalg import inv, eig, pinv
 from scipy.linalg import svd, svdvals
 from scipy.integrate import odeint, ode, complex_ode
 from warnings import warn
+import math
 
 # define time and space domains
 x = np.linspace(-10, 10, 100)
@@ -107,8 +108,8 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
         plt.grid(True)  # 目盛の表示
     elif type == "multi_plot":
         plt.plot(correct, label="correct")  # 実データ，青
-        plt.plot(predict, label="predict")  # 予測，オレンジ
-        #plt.plot(phi_predict, label="predict")  # 予測Φ，緑
+        # plt.plot(predict, label="predict")  # 予測，オレンジ
+        plt.scatter([i for i in range(50)], phi_predict, label="predict")  # 予測Φ，緑
         plt.title("x1_trajectory")
         plt.xlabel('n')
         plt.ylabel('x1')
@@ -140,7 +141,7 @@ mu, w, xi = la.eig(K, left=True, right=True)
 
 mu_real = [i.real for i in mu]
 mu_imag = [i.imag for i in mu]
-graph(mu_real, mu_imag, "eigenvalue", "scatter")
+# graph(mu_real, mu_imag, "eigenvalue", "scatter")
 
 """B = [1, 1, 1, 1, 1]
 v = (w.T.dot(B)).T  # 本当はエルミート
@@ -184,11 +185,33 @@ for i in range(1, M + 3):
 
 C = X25.T.dot(np.linalg.inv(rrr.T))
 
-# data = data_Preprocessing("train_x")  # E_recon_50
-width = 10
+data = data_Preprocessing("E_recon_50")  #
+width = 50
 
 mu, xi, zeta = la.eig(K, left=True, right=True)
+"""print(mu)
+print("#############################")
+print(xi)
+print("--------------------------------")
+print(zeta)
+exit()"""
+#print(mu[1] * np.conjugate(xi[:, 1].T) - np.conjugate(xi[:, 1]).T.dot(K))
+#print(mu[1] * xi[:, 1].T - xi[:, 1].T.dot(K))
 
+
+confirm = np.conjugate(xi.T).dot(zeta)
+print(np.diag(confirm))
+adjustment = np.diag(confirm)
+
+for i in range(M + 3):
+    for j in range(M + 3):
+        y = adjustment[i]
+        xi[j][i] = xi[j][i] / np.conjugate(adjustment[i])
+
+confirm = np.conjugate(xi.T).dot(zeta)
+print(np.diag(confirm))
+
+xi = np.conjugate(xi)
 while count < 99:
     x_data = data[count * width:count * width + width]  # N = 10
     Sai = sai(x_data[0, 0], x_data[0, 1]).reshape(1, 25)
@@ -202,6 +225,7 @@ while count < 99:
     m = B.dot(zeta)  # (xi.T.dot(B)).T  # 本当はエルミート
     m = m.T
     # sai_T = torch.rand(M + 3, width - 1) * 100
+
     xi_T = xi.T
     phi = (xi.T).dot(sai_T)
     """ m = (xi.dot(B)).T
@@ -217,20 +241,25 @@ while count < 99:
 
     # ab = x00 / x_data[0][0]
     # ab2 = x01 / x_data[0][1]
-
-
+    # print(1, phi[0][0], m[0][0])
+    # print(phi)
     for n in range(1, width):
-        print((mu[1] ** n) * phi[1][0], phi[1][n])
+        # print((mu[1] ** n) * phi[1][0], phi[1][n])
+        # print(mu[0] ** n, phi[0][0], m[0][0])
         F = [(mu[k] ** n) * phi[k][0] * m[k][0] for k in range(M + 3)]
-        x_tilde[n][0] = sum([(mu[k] ** n) * phi[k][0] * m[k][0] for k in range(M + 3)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
+        P = sum(F)
+        Q = sum([math.pow(mu[k], n) * phi[k][0] * m[k][0] for k in range(M + 3)]).real
+        # print([mu[k] ** n for k in range(M + 3)])
+        x_tilde[n][0] = sum([pow(mu[k], n) * phi[k][0] * m[k][0] for k in range(M + 3)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
         x_tilde[n][1] = sum([(mu[k] ** n) * phi[k][0] * m[k][1] for k in range(M + 3)]).real
 
+        G = [phi[k][1] * m[k][0] for k in range(M + 3)]
         x_tilde_phi[n][0] = sum([phi[k][n] * m[k][0] for k in range(M + 3)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
         x_tilde_phi[n][1] = sum([phi[k][n] * m[k][1] for k in range(M + 3)]).real
 
     E_recon = (1 / N * sum([abs(x_data[n][0] - x_tilde[n][0]) ** 2 + abs(x_data[n][1] - x_tilde[n][1]) ** 2
                             for n in range(width)])) ** 0.5
-    print("E_recon", E_recon)
+    # print("E_recon", E_recon)
 
     count += 1
     x_tilde_0 = [i for i, j in x_tilde]

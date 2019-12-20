@@ -65,11 +65,8 @@ lambda_ = 1e-3
 I = torch.tensor(np.eye(25, 25), dtype=torch.float32)
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
 epsilon = 0.1
-net = ODEFunc()
-# optimizer = optim.SGD(net.parameters(), lr=1e-5)
-optimizer = optim.Adam(net.parameters(), lr=1e-4)
-loss_fn = nn.MSELoss()  # J(K, theta)
-y = []
+
+
 
 def p_inv(X):
     X_T = torch.transpose(X, 0, 1)
@@ -93,9 +90,13 @@ def graph(y, st):
     # 描画実行
     plt.show()
 
+net = ODEFunc()
+# optimizer = optim.SGD(net.parameters(), lr=1e-5)
+
+
 def total_net(data):
     before_pred_sai = before_net(data)
-    after_pred_sai = odeint(net, before_pred_sai, tSpan)[0]
+    after_pred_sai = odeint(net, before_pred_sai, tSpan)
     pred_sai = after_net(after_pred_sai)
     return pred_sai
 
@@ -105,24 +106,34 @@ tSpan = torch.from_numpy(tSpan)
 width = 11  # 11
 inv_N = 1/10  # 0.1
 min_loss = float("INF")
+y = []
 
+#optimizer = optim.Adam(before_net.parameters(), lr=1e-4)
+optimizer2 = optim.Adam(net.parameters(), lr=1e-4)
+#optimizer3 = optim.Adam(after_net.parameters(), lr=1e-4)
+loss_fn = nn.MSELoss()  # J(K, theta)
 # パラメータカウント
 params = 0
 for p in before_net.parameters():
     if p.requires_grad:
         params += p.numel()
+        p.requires_grad = False
 for p in net.parameters():
     if p.requires_grad:
         params += p.numel()
 for p in after_net.parameters():
     if p.requires_grad:
         params += p.numel()
+        #p.requires_grad = False
 print("parameterの数", params)
-exit()
+# exit()
 
 # while J(K, theta) > epsilon:
-for count in range(1000):
-    optimizer.zero_grad()
+count = 0
+while count < 100:
+    #optimizer.zero_grad()
+    optimizer2.zero_grad()
+    #optimizer3.zero_grad()
 
     x_data = data[count * width:count * width + width - 1]
     y_data = data[count * width + 1:count * width + width]
@@ -180,9 +191,11 @@ for count in range(1000):
     print("loss", loss)
     # print(net.parameters().item())
     loss.backward()
-    optimizer.step()
+    #optimizer.step()
+    optimizer2.step()
+    #optimizer3.step()
 
-    count += 1
+    #count += 1
 graph(y, "train")
 count = 0
 

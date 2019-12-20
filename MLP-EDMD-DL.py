@@ -23,7 +23,7 @@ def J(K, theta):
     pass
 
 
-lambda_ = 1e-9  # 1e-6
+lambda_ = 1e-7  # 1e-6
 
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
 epsilon = 0.1
@@ -126,7 +126,7 @@ rotation = 1000
 x = [i for i in range(rotation)]
 
 # パラメータカウント
-params = 0
+"""params = 0
 for p in net.parameters():
     if p.requires_grad:
         params += p.numel()
@@ -134,77 +134,76 @@ print("parameterの数", params)
 
 # summary(net, (2, 10000, ))
 # modelsummary.summary(net, d, M)
-exit()
+exit()"""
 
-for _ in range(1):
-    while count < rotation:
-        if count % 100 == 0:
-            print(count)
-        optimizer.zero_grad()
+while count < rotation:
+    if count % 100 == 0:
+        print(count)
+    optimizer.zero_grad()
 
-        #x_data = data[count * width:count * width + width - 1]  # 0～9，11～20，
+    #x_data = data[count * width:count * width + width - 1]  # 0～9，11～20，
 
-        #y_data = data[count * width + 1:count * width + width]  # 1～10，12～21，
-        pred_sai = net(x_data)  # count * 50 : count * 50 + 50
-        y_pred_sai = net(y_data)
+    #y_data = data[count * width + 1:count * width + width]  # 1～10，12～21，
+    pred_sai = net(x_data)  # count * 50 : count * 50 + 50
+    y_pred_sai = net(y_data)
 
-        #fixed_sai = torch.cat([x_data, torch.tensor([[0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1]])], dim=1)
-        #y_fixed_sai = torch.cat([y_data, torch.tensor([[0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1]])], dim=1)
+    #fixed_sai = torch.cat([x_data, torch.tensor([[0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1]])], dim=1)
+    #y_fixed_sai = torch.cat([y_data, torch.tensor([[0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1]])], dim=1)
 
-        fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
-        pred_sai = torch.cat([pred_sai, fixed_sai], dim=1)
-        y_fixed_sai = torch.tensor([i + [0.1] for i in y_data.detach().tolist()], dtype=torch.float32)
-        y_pred_sai = torch.cat([y_pred_sai, y_fixed_sai], dim=1)
+    fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
+    pred_sai = torch.cat([pred_sai, fixed_sai], dim=1)
+    y_fixed_sai = torch.tensor([i + [0.1] for i in y_data.detach().tolist()], dtype=torch.float32)
+    y_pred_sai = torch.cat([y_pred_sai, y_fixed_sai], dim=1)
 
-        pred_sai_T = torch.transpose(pred_sai, 0, 1)
+    pred_sai_T = torch.transpose(pred_sai, 0, 1)
 
-        G = inv_N * torch.mm(pred_sai_T, pred_sai)  # 本当はエルミート
-        A = inv_N * torch.mm(pred_sai_T, y_pred_sai)
+    G = inv_N * torch.mm(pred_sai_T, pred_sai)  # 本当はエルミート
+    A = inv_N * torch.mm(pred_sai_T, y_pred_sai)
 
-        # K_tilde = torch.mm(p_inv(G + lambda_ * I), A)  # pinverseを使うとおかしくなるのでp_invで代用
-        K_tilde = torch.mm(torch.inverse(G + lambda_ * I), A)
-        K_tilde = torch.tensor(K_tilde, requires_grad=False)
+    # K_tilde = torch.mm(p_inv(G + lambda_ * I), A)  # pinverseを使うとおかしくなるのでp_invで代用
+    K_tilde = torch.mm(torch.inverse(G + lambda_ * I), A)
+    K_tilde = torch.tensor(K_tilde, requires_grad=False)
 
-        Pred = torch.mm(K_tilde, pred_sai_T)
-        # Pred = torch.transpose(Pred, 0, 1)
+    Pred = torch.mm(K_tilde, pred_sai_T)
+    # Pred = torch.transpose(Pred, 0, 1)
 
-        # y_pred_sai = y_pred_sai[0]
-        # y_pred_sai = torch.tensor(y_pred_sai)
-        # y_pred_sai = torch.tensor(y_pred_sai.detach().numpy(), dtype=torch.float32)
-        y_pred_sai_T = torch.transpose(y_pred_sai, 0, 1)
-        # res = torch.tensor(lambda_ * torch.mm(K_tilde, K_tilde), dtype=torch.float32)
-        res = lambda_ * Frobenius_norm(K_tilde)
+    # y_pred_sai = y_pred_sai[0]
+    # y_pred_sai = torch.tensor(y_pred_sai)
+    # y_pred_sai = torch.tensor(y_pred_sai.detach().numpy(), dtype=torch.float32)
+    y_pred_sai_T = torch.transpose(y_pred_sai, 0, 1)
+    # res = torch.tensor(lambda_ * torch.mm(K_tilde, K_tilde), dtype=torch.float32)
+    res = lambda_ * Frobenius_norm(K_tilde)
 
-        # t = torch.transpose(pred_sai_T, 0, 1)
-        # Pred = Pred.view(1, -1)
-        loss = res
-        QWRETY = y_pred_sai_T - Pred  # pred_sai_T
-        PPAP = QWRETY ** 2
-        loss += torch.sum(PPAP)
-        # torch.matrix_power(QWRETY)
-        """for i in range(N):
-            # print(QWRETY[i])
-            # loss += torch.log(sum([abs(c) for c in QWRETY[i]]))  # 順番逆かも，結果は変わらない
-            for c in QWRETY[:, i]:
-                loss += c ** 2"""
-        """for j in range(len(Pred)):
-            for i in y_pred_sai[j] - Pred[j]:
-                loss += torch.log(abs(i))"""
-        # loss = loss_fn(x_tilde, data_val[count + 1, :])  # count * 50 + 1 : count * 50 + 51
-        # loss = loss_fn(pred_sai, y_pred_sai)
-        # loss = loss_fn(Pred, y_pred_sai_T)
-        # loss =torch.tensor(1, requires_grad=True)
-        # x.append(rout)
-        # if loss < 1.5:
-        y.append(loss)
-        print("loss", loss)
-        # print(net.parameters().item())
-        loss.backward()
-        optimizer.step()
+    # t = torch.transpose(pred_sai_T, 0, 1)
+    # Pred = Pred.view(1, -1)
+    loss = res
+    QWRETY = y_pred_sai_T - Pred  # pred_sai_T
+    PPAP = QWRETY ** 2
+    loss += torch.sum(PPAP)
+    # torch.matrix_power(QWRETY)
+    """for i in range(N):
+        # print(QWRETY[i])
+        # loss += torch.log(sum([abs(c) for c in QWRETY[i]]))  # 順番逆かも，結果は変わらない
+        for c in QWRETY[:, i]:
+            loss += c ** 2"""
+    """for j in range(len(Pred)):
+        for i in y_pred_sai[j] - Pred[j]:
+            loss += torch.log(abs(i))"""
+    # loss = loss_fn(x_tilde, data_val[count + 1, :])  # count * 50 + 1 : count * 50 + 51
+    # loss = loss_fn(pred_sai, y_pred_sai)
+    # loss = loss_fn(Pred, y_pred_sai_T)
+    # loss =torch.tensor(1, requires_grad=True)
+    # x.append(rout)
+    # if loss < 1.5:
+    y.append(loss)
+    print("loss", loss)
+    # print(net.parameters().item())
+    loss.backward()
+    optimizer.step()
 
-        count += 1
-    graph(x, y, "train", "plot")
-    count = 0
+    count += 1
+graph(x, y, "train", "plot")
+count = 0
 
 
 """学習済みのnetを使って，E_reconを計算"""
@@ -237,12 +236,27 @@ for tr_val_te in ["E_recon_50"]:
     B = torch.mm(X25, torch.inverse(Sai))
     B = B.detach().numpy()
     K = K.detach().numpy()
-    data = data_Preprocessing("train_x")  # E_recon_50
+
+    data = data_Preprocessing("E_recon_50")
     width = 10
 
     mu, xi, zeta = la.eig(K, left=True, right=True)
 
-    # mu zeta = K zeta
+    # xi内積zetaでxiを正規化
+    confirm = np.conjugate(xi.T).dot(zeta)
+    print(np.diag(confirm))
+    adjustment = np.diag(confirm)
+
+    for i in range(M + 3):
+        for j in range(M + 3):
+            y = adjustment[i]
+            xi[j][i] = xi[j][i] / np.conjugate(adjustment[i])
+
+    confirm = np.conjugate(xi.T).dot(zeta)
+    print(np.diag(confirm))
+
+    xi = np.conjugate(xi)
+    """"# mu zeta = K zeta
     # mu z = K.T z
     # mu z.T = z.T K，xi = z.T
     mu2, _, z = la.eig(K.T, left=True, right=True)
@@ -253,7 +267,7 @@ for tr_val_te in ["E_recon_50"]:
     print(mu[1] * zeta[:, 1] - K.dot(zeta[:, 1]))
     print(mu[1] * xi[:, 1].T - xi[:, 1].T.dot(K))
     print(mu[1] * zeta[:, 1], K.dot(zeta[:, 1]))
-    print(mu[1] * xi[:, 1].T, xi[:, 1].T.dot(K))
+    print(mu[1] * xi[:, 1].T, xi[:, 1].T.dot(K))"""
 
     mu_real = [i.real for i in mu]
     mu_imag = [i.imag for i in mu]
