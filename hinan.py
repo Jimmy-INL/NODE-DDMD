@@ -2,8 +2,8 @@ import os
 import argparse
 import time
 import numpy as np
-import torchsummary
-import modelsummary
+# import torchsummary
+# import modelsummary
 
 import torch
 import torch.nn as nn
@@ -14,6 +14,7 @@ from scipy import linalg as la
 from matplotlib import pyplot as plt
 
 from torchdiffeq import odeint
+# from torchdiffeq import odeint_adjoint as odeint
 
 
 data_name = 'Discrete_Linear'  # 'Duffing_oscillator', 'Linear'
@@ -105,7 +106,7 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
         plt.grid(True)  # 目盛の表示
     elif type == "multi_plot":
         plt.plot(correct, label="correct")  # 実データ，青
-        # plt.plot(predict, label="predict")  # 予測，オレンジ
+        plt.plot(predict, label="predict")  # 予測，オレンジ
         plt.plot(phi_predict, label="predict")  # 予測Φ，緑
         plt.title("x1_trajectory")
         plt.xlabel('n')
@@ -117,11 +118,13 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
 
 def total_net(data):
     before_pred_sai = before_net(data)
-    after_pred_sai = odeint(net, before_pred_sai, tSpan)[0]
+
+    # before_pred_sai = torch.tensor([[i for i in range(l)] for _ in range(N)], dtype=torch.float32)
+    after_pred_sai = odeint(net, before_pred_sai, tSpan)[1]
     pred_sai = after_net(after_pred_sai)
     return pred_sai
 
-tSpan = np.arange(1, 1 + 0.1, 5)
+tSpan = np.arange(0, 0 + 0.2, 0.1)
 tSpan = torch.from_numpy(tSpan)
 # intSpan = torch.tensor([i for i in range(1, 26)], dtype=torch.float32)
 
@@ -165,20 +168,22 @@ K_tilde = []
 x_data = data_Preprocessing("train_x")
 y_data = data_Preprocessing("train_y")
 count = 0
-rotation = 100
+rotation = 1
 x = [i for i in range(rotation)]
 
 # パラメータカウント
 params = 0
 for p in before_net.parameters():
     if p.requires_grad:
-        params += p.numel()
+        # params += p.numel()
+        p.requires_grad = False
 for p in net.parameters():
     if p.requires_grad:
         params += p.numel()
 for p in after_net.parameters():
     if p.requires_grad:
-        params += p.numel()
+        # params += p.numel()
+        p.requires_grad = False
 print("parameterの数", params)
 # exit()
 
@@ -284,7 +289,7 @@ for tr_val_te in ["E_recon_50"]:
     K = K.detach().numpy()
 
     data = data_Preprocessing("E_recon_50")
-    width = 10
+    width = 50
 
     mu, xi, zeta = la.eig(K, left=True, right=True)
 

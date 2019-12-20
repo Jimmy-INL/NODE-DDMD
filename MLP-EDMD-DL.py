@@ -6,8 +6,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torchsummary
-import modelsummary
 
 import numpy as np
 from scipy import linalg as la
@@ -15,7 +13,7 @@ from scipy import linalg as la
 from matplotlib import pyplot as plt
 
 
-data_name = 'Discrete_Linear'  # 'Duffing_oscillator', 'Linear'
+data_name = 'Duffing_oscillator'  # 'Duffing_oscillator', 'Linear'，Discrete_Linear
 
 
 
@@ -122,7 +120,7 @@ y_data = data_Preprocessing("train_y")
 data = torch.tensor(data, dtype=torch.float32)"""
 # if tr_val_te != "train":
 count = 0
-rotation = 1000
+rotation = 10
 x = [i for i in range(rotation)]
 
 # パラメータカウント
@@ -238,7 +236,7 @@ for tr_val_te in ["E_recon_50"]:
     K = K.detach().numpy()
 
     data = data_Preprocessing("E_recon_50")
-    width = 10
+    width = 50
 
     mu, xi, zeta = la.eig(K, left=True, right=True)
 
@@ -273,7 +271,7 @@ for tr_val_te in ["E_recon_50"]:
     mu_imag = [i.imag for i in mu]
     graph(mu_real, mu_imag, "eigenvalue", "scatter")
 
-    while count < 9:
+    while count < 2:
         x_data = data[count * width:count * width + width]  # N = 10
         sai = net(x_data)
         fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
@@ -323,6 +321,8 @@ y_phi_list = [[0 for count in range(I_number)] for j in range(25)]
 for count in range(I_number):
     x_data = data[count * width:count * width + width]
     pred_sai = net(x_data)  # count * 50 : count * 50 + 50
+    fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
+    pred_sai = torch.cat([pred_sai, fixed_sai], dim=1).detach().numpy()
     pred_sai = (xi.T).dot(pred_sai.T)
     for j in range(M + 3):
         if j < 22:
@@ -339,8 +339,6 @@ for count in range(I_number):
             y_phi_list[j][count] = 0.1
 
 
-phi_list = phi_list
-y_phi_list = y_phi_list
 """E_eigfunc_jを計算"""
 E_eigfunc = [0] * (M + 3)
 for j in range(M + 3):

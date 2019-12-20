@@ -2,8 +2,6 @@ import os
 import argparse
 import time
 import numpy as np
-import torchsummary
-import modelsummary
 
 import torch
 import torch.nn as nn
@@ -96,11 +94,11 @@ net = ODEFunc()
 
 def total_net(data):
     before_pred_sai = before_net(data)
-    after_pred_sai = odeint(net, before_pred_sai, tSpan)
+    after_pred_sai = odeint(net, before_pred_sai, tSpan)[3]
     pred_sai = after_net(after_pred_sai)
     return pred_sai
 
-tSpan = np.arange(1, 1 + 0.1, 5)
+tSpan = np.arange(1, 2 + 0.1, 0.1)  # 1, 1 + 0.1, 5
 tSpan = torch.from_numpy(tSpan)
 # intSpan = torch.tensor([i for i in range(1, 26)], dtype=torch.float32)
 width = 11  # 11
