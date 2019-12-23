@@ -14,7 +14,7 @@ from matplotlib import pyplot as plt
 from scipy.stats import uniform
 
 
-data_name = 'Duffing_oscillator'  # 'Duffing_oscillator', 'Linear'，Discrete_Linear
+data_name = 'Discrete_Linear_diag'  # 'Duffing_oscillator', 'Linear'，Discrete_Linear Duffing_oscillator spectrum-1
 
 
 
@@ -22,7 +22,7 @@ def J(K, theta):
     pass
 
 
-lambda_ = 1e-7  # 1e-6
+lambda_ = 1e-3  # 1e-6
 
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
 epsilon = 0.1
@@ -47,7 +47,7 @@ nn.Linear(l, l),
     nn.Linear(l, M),
 )
 # optimizer = optim.SGD(net.parameters(), lr=2e-4)
-optimizer = optim.Adam(net.parameters(), lr=1e-5)  # 1e-5
+optimizer = optim.Adam(net.parameters(), lr=1e-3)  # 1e-5
 loss_fn = nn.MSELoss()  # J(K, theta)
 
 def data_Preprocessing(tr_val_te):
@@ -121,7 +121,7 @@ y_data = data_Preprocessing("train_y")
 data = torch.tensor(data, dtype=torch.float32)"""
 # if tr_val_te != "train":
 count = 0
-rotation = 1000
+rotation = 100
 x = [i for i in range(rotation)]
 
 # パラメータカウント
@@ -233,6 +233,7 @@ for tr_val_te in ["E_recon_50"]:
 
     # Sai = torch.transpose(Sai, 0, 1)
     B = torch.mm(X25, torch.inverse(Sai))
+    B = torch.tensor([[1 if ((i == 22 and j == 0) or (i == 23 and j == 1)) else 0 for i in range(M + 3)] for j in range(2)])
     B = B.detach().numpy()
     K = K.detach().numpy()
 
@@ -252,7 +253,7 @@ for tr_val_te in ["E_recon_50"]:
             xi[j][i] = xi[j][i] / np.conjugate(adjustment[i])
 
     confirm = np.conjugate(xi.T).dot(zeta)
-    print(np.diag(confirm))
+    # print(np.diag(confirm))
 
     xi = np.conjugate(xi)
     """"# mu zeta = K zeta
@@ -272,7 +273,8 @@ for tr_val_te in ["E_recon_50"]:
     mu_imag = [i.imag for i in mu]
     graph(mu_real, mu_imag, "eigenvalue", "scatter")
 
-    while count < 2:
+
+    while count < 10:
         x_data = data[count * width:count * width + width]  # N = 10
         sai = net(x_data)
         fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
@@ -284,6 +286,12 @@ for tr_val_te in ["E_recon_50"]:
         m = m.T
         # sai_T = torch.rand(M + 3, width - 1) * 100
         phi = (xi.T).dot(sai_T)
+
+        for kk in range(M + 3):
+            print("-----------------------", kk, "--------------------------------------")
+            for i in range(1, width):
+                # print(Phi[10][i - 1] / Phi[10][i], Mu[10])
+                print(phi[kk][i] / phi[kk][i - 1], mu[kk])
 
         x_tilde = [[0, 0] for _ in range(width)]  # [[0, 0]] * (width - 1)
         x_tilde_phi = [[0, 0] for _ in range(width)]
@@ -305,11 +313,11 @@ for tr_val_te in ["E_recon_50"]:
         print("E_recon", E_recon)
 
         count += 1
-        x_tilde_0 = [i for i, j in x_tilde]
-        x_tilde_phi_0 = [i for i, j in x_tilde_phi]
+        x_tilde_0 = [j for i, j in x_tilde]
+        x_tilde_phi_0 = [j for i, j in x_tilde_phi]
 
-        graph([], [], "x1_traj_" + "{stp:02}".format(stp=count), "multi_plot"
-              , x_data[:, 0], x_tilde_0, x_tilde_phi_0)
+        graph([], [], "x2_traj_" + "{stp:02}".format(stp=count), "multi_plot"
+              , x_data[:, 1], x_tilde_0, x_tilde_phi_0)
 
 
 """学習済みのnetを使って，E_eigfuncを計算"""

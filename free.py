@@ -4,6 +4,19 @@ import torch.optim as optim
 
 import numpy as np
 from scipy import linalg as la
+x1, x2 = np.random.normal(
+                loc=0,  # 平均
+                scale=1,  # 標準偏差
+                size=2,  # 出力配列のサイズ(タプルも可)
+            )
+print(x1, x2)
+P = np.array([[2 ** 0.5 / 2, - 2 ** 0.5 / 2], [2 ** 0.5 / 2, 2 ** 0.5 / 2]])
+K = np.array([[0.8, 0], [0, 0.9]])
+print(P.dot(K).dot(P.T))
+mu, _ = la.eig(np.array([[ 0.85, -0.05],[-0.05, 0.85]]))
+print(mu)
+
+
 A = np.array([[1, -1], [0.02, 0.7]])
 mu, hidari, migi = la.eig(A, left=True, right=True)
 for i in range(4):

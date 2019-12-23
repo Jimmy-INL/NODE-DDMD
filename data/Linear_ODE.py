@@ -8,12 +8,24 @@ def Linear_ODE(x1range, x2range, numICs, tSpan, seed, type="z"):
     # try some initial conditions for x1, x2
     np.random.seed(seed=seed)
 
-    a, b, c, d = 1, -1, 0.02, 0.7  # mu = 0.8, 0.9
+    def dynsys(x, t):
+        dydt = np.zeros_like(x)
+        dydt[0] = 0.9 * x[0] - 0.1 * x[1]
+        dydt[1] = 0.8 * x[1]
+        return dydt
+
+
+    """def dynsys(x, t):
+        dydt = np.zeros_like(x)
+        dydt[0] = (-0.7) * (x[0])
+        dydt[1] = (-0.8) * ((x[1]) - (x[0]) ** 2)
+        return dydt"""
+    """a, b, c, d = 1, -1, 0.02, 0.7  # mu = 0.8, 0.9
     def dynsys(x, t):
         dydt = np.zeros_like(x)
         dydt[0] = a * x[0] + b * x[1]
         dydt[1] = c * x[0] + d * x[1]
-        return dydt
+        return dydt"""
 
     lenT = len(tSpan)  # 11, 500
 
@@ -38,6 +50,11 @@ def Linear_ODE(x1range, x2range, numICs, tSpan, seed, type="z"):
         for j in range(100 * numICs):  # j = 1:100*numICs
             x1 = uniform(x1range[0], x1range[1])
             x2 = uniform(x2range[0], x2range[1])
+            x1, x2 = np.random.normal(
+                loc=0,  # 平均
+                scale=1,  # 標準偏差
+                size=2,  # 出力配列のサイズ(タプルも可)
+            )
             ic = [x1, x2]
             temp = odeint(dynsys, ic, tSpan)
             # [T, temp] = odeint(dynsys, ic, tSpan)

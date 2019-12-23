@@ -8,7 +8,7 @@ from Linear_ODE import Linear_ODE
 import csv
 import numpy as np
 
-numICs = 10000
+numICs = 1000
 
 x1range = [-2, 2]
 x2range = [-2, 2]
@@ -28,20 +28,20 @@ def make_csv(filename, X):
 
 
 ###############Discrete_Linear#############################
-filenamePrefix = 'Discrete_Linear'
+filenamePrefix = 'gausu_dis'
 seed = 10
-X_train = Discrete_Linear_ODE(x1range, x2range, 100000, np.arange(0, 2.5, 0.25), seed, "x")
+X_train = Discrete_Linear_ODE(x1range, x2range, 100, np.arange(0, 0.25 - 0.1, 0.25), seed, "x") # 0, 2.5, 0.25
 filename_train = filenamePrefix + '_train_x.csv'
 make_csv(filename_train, X_train)
 
 seed = 10
-tSpan = np.arange(0, 2.5 + 0.1, 0.25)
-X_train = Discrete_Linear_ODE(x1range, x2range, 100000, tSpan, seed, "y")
+tSpan = np.arange(0, 0.25 + 0.1, 0.25) # 0, 2.5 + 0.1, 0.25
+X_train = Discrete_Linear_ODE(x1range, x2range, 100, tSpan, seed, "y")
 filename_train = filenamePrefix + '_train_y.csv'
 make_csv(filename_train, X_train)
 
 seed = 1
-tSpan = np.arange(0, 12.5, 0.25)
+tSpan = np.arange(0, 12.5, 0.25)  # 0, 12.5, 0.25
 X_train = Discrete_Linear_ODE(x1range, x2range, round(1 * numICs), tSpan, seed)
 filename_train = filenamePrefix + "_E_recon_50" + '.csv'
 make_csv(filename_train, X_train)

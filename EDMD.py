@@ -14,6 +14,17 @@ from scipy.integrate import odeint, ode, complex_ode
 from warnings import warn
 import math
 
+import numpy as np
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from numpy import dot, multiply, diag, power
+from numpy import pi, exp, sin, cos, cosh, tanh, real, imag
+from numpy.linalg import inv, eig, pinv
+from scipy.linalg import svd, svdvals
+from scipy.integrate import odeint, ode, complex_ode
+from warnings import warn
+
 # define time and space domains
 x = np.linspace(-10, 10, 100)
 t = np.linspace(0, 6 * pi, 80)
@@ -86,8 +97,8 @@ for i in range(5):
     t = np.outer(a, b)
     k.append(t)
 r = np.sum(k, axis=0)"""
-N = 10000
-data_name = 'Duffing_oscillator'  #  , 'Linear''Discrete_Linear'
+N = 100
+data_name = 'gausu_dis'  # , 'Linear''Discrete_Linear，Duffing_oscillator', Discrete_Linear Discrete_Linear_diag
 def data_Preprocessing(tr_val_te):
     data = np.loadtxt(('./data/%s_%s.csv' % (data_name, tr_val_te)), delimiter=',', dtype=np.float64)[:N]
     return data
@@ -108,8 +119,8 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
         plt.grid(True)  # 目盛の表示
     elif type == "multi_plot":
         plt.plot(correct, label="correct")  # 実データ，青
-        # plt.plot(predict, label="predict")  # 予測，オレンジ
-        plt.scatter([i for i in range(50)], phi_predict, label="predict")  # 予測Φ，緑
+        plt.plot(predict, label="predict")  # 予測，オレンジ
+        plt.scatter([i for i in range(50)], phi_predict, label="predict", color="palegreen")  # 予測Φ，緑
         plt.title("x1_trajectory")
         plt.xlabel('n')
         plt.ylabel('x1')
@@ -134,14 +145,29 @@ A = 1 / N * np.sum([np.outer(sai(x_data[i, 0], x_data[i, 1]).T, (sai(y_data[i, 0
 # p = sai(x_data[2, 0], x_data[2, 1])
 # G = inv_N * torch.mm(sai(x_data[i, 0], x_data[i, 1]).T, sai(x_data[i, 0], x_data[i, 1]))  # 本当はエルミート
 # A = inv_N * torch.mm(sai(x_data[i, 0], x_data[i, 1]).T, sai(y_data[i, 0], y_data[i, 1]))
+# SVD of input matrix
+"""U2,Sig2,Vh2 = svd(G, False)
+r = 3
+U = U2[:,:r]
+Sig = diag(Sig2)[:r,:r]
+V = Vh2.conj().T[:,:r]
+
+# build A tilde
+Atil = dot(dot(dot(U.conj().T, A), V), inv(Sig))
+mu,W = eig(Atil)
+
+mu, w, xi = la.eig(Atil, left=True, right=True)
+
+mu_real = [i.real for i in mu]
+mu_imag = [i.imag for i in mu]
+graph(mu_real, mu_imag, "eigenvalue", "scatter")"""
 
 K = np.linalg.pinv(G).dot(A)
-
 mu, w, xi = la.eig(K, left=True, right=True)
 
 mu_real = [i.real for i in mu]
 mu_imag = [i.imag for i in mu]
-# graph(mu_real, mu_imag, "eigenvalue", "scatter")
+graph(mu_real, mu_imag, "eigenvalue", "scatter")
 
 """B = [1, 1, 1, 1, 1]
 v = (w.T.dot(B)).T  # 本当はエルミート
@@ -172,6 +198,8 @@ for i in range(1, M + 3):
 
 
 B = X25.T.dot(np.linalg.inv(rrr.T))
+B = torch.tensor([[1 / 2 if ((i == 1 and j == 0) or (i == 5 and j == 1)) else 0 for i in range(M + 3)] for j in range(2)])
+B = B.detach().numpy()
 
 X25 = data[0].reshape(1,2)
 for i in range(1, M + 3):
@@ -200,19 +228,23 @@ exit()"""
 
 
 confirm = np.conjugate(xi.T).dot(zeta)
-print(np.diag(confirm))
+# print(np.diag(confirm))
 adjustment = np.diag(confirm)
 
 for i in range(M + 3):
     for j in range(M + 3):
         y = adjustment[i]
-        xi[j][i] = xi[j][i] / np.conjugate(adjustment[i])
+        zeta[j][i] = zeta[j][i] / adjustment[i]
+"""for i in range(M + 3):
+    for j in range(M + 3):
+        y = adjustment[i]
+        xi[j][i] = xi[j][i] / np.conjugate(adjustment[i])"""
 
 confirm = np.conjugate(xi.T).dot(zeta)
-print(np.diag(confirm))
+# print(np.diag(confirm))
 
 xi = np.conjugate(xi)
-while count < 2:
+while count < 10:
     x_data = data[count * width:count * width + width]  # N = 10
     Sai = sai(x_data[0, 0], x_data[0, 1]).reshape(1, 25)
     for i in range(1, width):
@@ -239,20 +271,30 @@ while count < 2:
     x00 = sum([(mu[k] ** 0) * phi[k][0] * m[k][0] for k in range(M + 3)]).real
     x01 = sum([(mu[k] ** 0) * phi[k][0] * m[k][1] for k in range(M + 3)]).real
 
+    # print("wwwwwwwwwwwwwwwwwww", phi)
     # ab = x00 / x_data[0][0]
     # ab2 = x01 / x_data[0][1]
     # print(1, phi[0][0], m[0][0])
     # print(phi)
-    print("wwwwwwwwwwwwwwwwwww", phi[14][7] / phi[14][6], mu[14])
-    for n in range(1, width):
-        print(mu[6] ** n,  phi[6][0] / phi[6][n])
-        print(mu[5], phi[5][0] / phi[5][1], phi[5][1] / phi[5][2], phi[5][2] / phi[5][3])
+    # print("wwwwwwwwwwwwwwwwwww", phi[14][7] / phi[14][6], mu[14])
+    Mu = list(mu)
+    Phi = list(phi)
+    for kk in range(M + 3):
+        print("-----------------------", kk, "--------------------------------------")
+        for i in range(1, width):
+            # print(Phi[10][i - 1] / Phi[10][i], Mu[10])
+            print(phi[kk][i] / phi[kk][i - 1], mu[kk])
+
+    for n in range(0, width):
+        # print(mu[6] ** n,  phi[6][0] / phi[6][n])
+        # print(mu[5], phi[5][0] / phi[5][1], phi[5][1] / phi[5][2], phi[5][2] / phi[5][3])
         # print(mu[0] ** n, phi[0][0], m[0][0])
         F = [(mu[k] ** n) * phi[k][0] * m[k][0] for k in range(M + 3)]
         P = sum(F)
         Q = sum([math.pow(mu[k], n) * phi[k][0] * m[k][0] for k in range(M + 3)]).real
         # print([mu[k] ** n for k in range(M + 3)])
-        x_tilde[n][0] = sum([(mu[k] ** n) * phi[k][0] * m[k][0] for k in range(M + 3)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
+        u = sum([mu[k] ** n * phi[k][0] * m[k][0] for k in range(M + 3)])  #  if (k == 0 or k == 1 or k == 3 or k == 5) else 0
+        x_tilde[n][0] = sum([mu[k] ** n * phi[k][0] * m[k][0] for k in range(M + 3)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
         x_tilde[n][1] = sum([(mu[k] ** n) * phi[k][0] * m[k][1] for k in range(M + 3)]).real
 
         G = [phi[k][1] * m[k][0] for k in range(M + 3)]
