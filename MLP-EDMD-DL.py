@@ -11,6 +11,7 @@ import numpy as np
 from scipy import linalg as la
 
 from matplotlib import pyplot as plt
+from scipy.stats import uniform
 
 
 data_name = 'Duffing_oscillator'  # 'Duffing_oscillator', 'Linear'，Discrete_Linear
@@ -120,7 +121,7 @@ y_data = data_Preprocessing("train_y")
 data = torch.tensor(data, dtype=torch.float32)"""
 # if tr_val_te != "train":
 count = 0
-rotation = 10
+rotation = 1000
 x = [i for i in range(rotation)]
 
 # パラメータカウント
@@ -312,7 +313,7 @@ for tr_val_te in ["E_recon_50"]:
 
 
 """学習済みのnetを使って，E_eigfuncを計算"""
-I_number = 1000
+I_number = 10
 data = data_Preprocessing("E_eigfunc_confirm")
 width = 2
 phi_list = [[0 for count in range(I_number)] for j in range(25)]
@@ -323,8 +324,13 @@ for count in range(I_number):
     pred_sai = net(x_data)  # count * 50 : count * 50 + 50
     fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
     pred_sai = torch.cat([pred_sai, fixed_sai], dim=1).detach().numpy()
-    pred_sai = (xi.T).dot(pred_sai.T)
+    pred_phi = (xi.T).dot(pred_sai.T)
+
     for j in range(M + 3):
+        phi_list[j][count] = pred_phi[j][0]
+        y_phi_list[j][count] = pred_phi[j][1]
+
+    """for j in range(M + 3):
         if j < 22:
             phi_list[j][count] = pred_sai[0][j].detach().numpy()
             y_phi_list[j][count] = pred_sai[1][j].detach().numpy()
@@ -336,12 +342,19 @@ for count in range(I_number):
             y_phi_list[j][count] = x_data[1][1].detach().numpy()
         elif j == M + 2:
             phi_list[j][count] = 0.1
-            y_phi_list[j][count] = 0.1
+            y_phi_list[j][count] = 0.1"""
 
 
 """E_eigfunc_jを計算"""
+
+# N = 100000
+a = -100
+b = 100
+# x = uniform(loc=a, scale=b-a).rvs(size=N)
 E_eigfunc = [0] * (M + 3)
 for j in range(M + 3):
-    E_eigfunc[j] = np.sqrt(1 / I_number * sum([abs(y_phi_list[j][count] - mu[j] * phi_list[j][count]) ** 2
-                                   for count in range(I_number)]))
+    tmp = [(y_phi_list[j][count] - mu[j] * phi_list[j][count]).real ** 2
+           + (y_phi_list[j][count] - mu[j] * phi_list[j][count]).imag ** 2
+                                   for count in range(I_number)]
+    E_eigfunc[j] = np.sqrt(1 / I_number * sum(tmp))
     print("E_eigfunc", E_eigfunc[j])

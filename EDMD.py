@@ -212,7 +212,7 @@ confirm = np.conjugate(xi.T).dot(zeta)
 print(np.diag(confirm))
 
 xi = np.conjugate(xi)
-while count < 99:
+while count < 2:
     x_data = data[count * width:count * width + width]  # N = 10
     Sai = sai(x_data[0, 0], x_data[0, 1]).reshape(1, 25)
     for i in range(1, width):
@@ -243,14 +243,16 @@ while count < 99:
     # ab2 = x01 / x_data[0][1]
     # print(1, phi[0][0], m[0][0])
     # print(phi)
+    print("wwwwwwwwwwwwwwwwwww", phi[14][7] / phi[14][6], mu[14])
     for n in range(1, width):
-        # print((mu[1] ** n) * phi[1][0], phi[1][n])
+        print(mu[6] ** n,  phi[6][0] / phi[6][n])
+        print(mu[5], phi[5][0] / phi[5][1], phi[5][1] / phi[5][2], phi[5][2] / phi[5][3])
         # print(mu[0] ** n, phi[0][0], m[0][0])
         F = [(mu[k] ** n) * phi[k][0] * m[k][0] for k in range(M + 3)]
         P = sum(F)
         Q = sum([math.pow(mu[k], n) * phi[k][0] * m[k][0] for k in range(M + 3)]).real
         # print([mu[k] ** n for k in range(M + 3)])
-        x_tilde[n][0] = sum([pow(mu[k], n) * phi[k][0] * m[k][0] for k in range(M + 3)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
+        x_tilde[n][0] = sum([(mu[k] ** n) * phi[k][0] * m[k][0] for k in range(M + 3)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
         x_tilde[n][1] = sum([(mu[k] ** n) * phi[k][0] * m[k][1] for k in range(M + 3)]).real
 
         G = [phi[k][1] * m[k][0] for k in range(M + 3)]
@@ -259,7 +261,7 @@ while count < 99:
 
     E_recon = (1 / N * sum([abs(x_data[n][0] - x_tilde[n][0]) ** 2 + abs(x_data[n][1] - x_tilde[n][1]) ** 2
                             for n in range(width)])) ** 0.5
-    # print("E_recon", E_recon)
+    print("E_recon", E_recon)
 
     count += 1
     x_tilde_0 = [i for i, j in x_tilde]
@@ -267,3 +269,40 @@ while count < 99:
 
     graph([], [], "x1_traj_" + "{stp:02}".format(stp=count), "multi_plot"
           , x_data[:, 0], x_tilde_0, x_tilde_phi_0)
+
+"""学習済みのnetを使って，E_eigfuncを計算"""
+I_number = 10
+data = data_Preprocessing("E_eigfunc_confirm")
+width = 2
+phi_list = [[0 for count in range(I_number)] for j in range(25)]
+y_phi_list = [[0 for count in range(I_number)] for j in range(25)]
+
+for count in range(I_number):
+    x_data = data[count * width:count * width + width]
+
+    Sai = sai(x_data[0, 0], x_data[0, 1]).reshape(1, 25)
+    for i in range(1, width):
+        tmp = sai(x_data[i, 0], x_data[i, 1])
+        Sai = np.vstack((Sai, tmp))
+    sai_T = Sai.T
+    pred_phi = (xi.T).dot(sai_T)
+
+    for j in range(M + 3):
+        phi_list[j][count] = pred_phi[j][0]
+        y_phi_list[j][count] = pred_phi[j][1]
+
+
+"""E_eigfunc_jを計算"""
+
+# N = 100000
+a = -100
+b = 100
+# x = uniform(loc=a, scale=b-a).rvs(size=N)
+E_eigfunc = [0] * (M + 3)
+for j in range(M + 3):
+    tmp = [(y_phi_list[j][count] - mu[j] * phi_list[j][count]).real ** 2
+           + (y_phi_list[j][count] - mu[j] * phi_list[j][count]).imag ** 2
+                                   for count in range(I_number)]
+    # tmp2 = [np.conjugate(xi.T)]
+    E_eigfunc[j] = np.sqrt(1 / I_number * sum(tmp))
+    print("E_eigfunc", E_eigfunc[j])
