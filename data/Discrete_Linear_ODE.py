@@ -68,6 +68,11 @@ def Discrete_Linear_ODE(x1range, x2range, numICs, tSpan, seed, type="z"):
         for j in range(100 * numICs):  # j = 1:100*numICs
             x1 = uniform(x1range[0], x1range[1])
             x2 = uniform(x2range[0], x2range[1])
+            x1, x2 = np.random.normal(
+                loc=0,  # 平均
+                scale=1,  # 標準偏差
+                size=2,  # 出力配列のサイズ(タプルも可)
+            )
             ic = np.array([x1, x2])
             temp = ic.reshape(1, 2)
             for dis in range(1, len(tSpan)):

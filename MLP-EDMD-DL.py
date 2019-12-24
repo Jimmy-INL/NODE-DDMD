@@ -14,7 +14,7 @@ from matplotlib import pyplot as plt
 from scipy.stats import uniform
 
 
-data_name = 'Discrete_Linear_diag'  # 'Duffing_oscillator', 'Linear'，Discrete_Linear Duffing_oscillator spectrum-1
+data_name = 'spectrum-1'  # 'Duffing_oscillator', 'Linear'，Discrete_Linear Duffing_oscillator spectrum-1
 
 
 
@@ -22,13 +22,13 @@ def J(K, theta):
     pass
 
 
-lambda_ = 1e-3  # 1e-6
+lambda_ = 1e-6  # 1e-6
 
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
 epsilon = 0.1
 
 d = 2
-l = 150  # 70
+l = 300  # 70
 M = 22  # 22
 I = torch.eye(M + 3, M + 3)
 
@@ -39,7 +39,7 @@ inv_N = 1/N  #0.1
 net = nn.Sequential(
     nn.Linear(d, l),
     nn.Tanh(),
-nn.Linear(l, l),
+    nn.Linear(l, l),
     nn.Tanh(),
     #nn.Dropout(0.5),
     nn.Linear(l, l),
@@ -47,7 +47,7 @@ nn.Linear(l, l),
     nn.Linear(l, M),
 )
 # optimizer = optim.SGD(net.parameters(), lr=2e-4)
-optimizer = optim.Adam(net.parameters(), lr=1e-3)  # 1e-5
+optimizer = optim.Adam(net.parameters(), lr=1e-4)  # 1e-4
 loss_fn = nn.MSELoss()  # J(K, theta)
 
 def data_Preprocessing(tr_val_te):
@@ -121,7 +121,7 @@ y_data = data_Preprocessing("train_y")
 data = torch.tensor(data, dtype=torch.float32)"""
 # if tr_val_te != "train":
 count = 0
-rotation = 100
+rotation = 1000
 x = [i for i in range(rotation)]
 
 # パラメータカウント
@@ -201,7 +201,7 @@ while count < rotation:
     optimizer.step()
 
     count += 1
-graph(x, y, "train", "plot")
+#graph(x, y, "train", "plot")
 count = 0
 
 
@@ -255,7 +255,7 @@ for tr_val_te in ["E_recon_50"]:
     confirm = np.conjugate(xi.T).dot(zeta)
     # print(np.diag(confirm))
 
-    xi = np.conjugate(xi)
+    #xi = np.conjugate(xi)
     """"# mu zeta = K zeta
     # mu z = K.T z
     # mu z.T = z.T K，xi = z.T
@@ -282,10 +282,14 @@ for tr_val_te in ["E_recon_50"]:
         sai_T = sai.T
 
         """E_reconを計算"""
-        m = B.dot(zeta)  # (xi.T.dot(B)).T  # 本当はエルミート
-        m = m.T
+        #m = B.dot(zeta)  # (xi.T.dot(B)).T  # 本当はエルミート
+        #m = m.T
+        m = xi.T.dot(B.T)
+
         # sai_T = torch.rand(M + 3, width - 1) * 100
-        phi = (xi.T).dot(sai_T)
+        #phi = (xi.T).dot(sai_T)
+        phi = sai.dot(zeta)
+        phi = phi.T
 
         for kk in range(M + 3):
             print("-----------------------", kk, "--------------------------------------")
@@ -316,7 +320,7 @@ for tr_val_te in ["E_recon_50"]:
         x_tilde_0 = [j for i, j in x_tilde]
         x_tilde_phi_0 = [j for i, j in x_tilde_phi]
 
-        graph([], [], "x2_traj_" + "{stp:02}".format(stp=count), "multi_plot"
+        graph([], [], "x1_traj_" + "{stp:02}".format(stp=count), "multi_plot"
               , x_data[:, 1], x_tilde_0, x_tilde_phi_0)
 
 

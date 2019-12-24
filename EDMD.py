@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import linalg as la
 # DMD Algorithm
-
+import functools
 import torch
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -39,6 +39,32 @@ A10 = 3
 
 
 # Extended Dynamic Mode Decomposition
+"""sai_1 = lambda x, y: 1
+sai_2 = lambda x, y: x
+sai_3 = lambda x, y: 4 * x**2 - 2
+sai_4 = lambda x, y: 8 * x**3 - 12 * x
+sai_5 = lambda x, y: 16 * x**4 - 48 * x**2 + 12
+sai_6 = lambda x, y: 1 * (y)
+sai_7 = lambda x, y: x * (y)
+sai_8 = lambda x, y: (4 * x**2 - 2) * (y)
+sai_9 = lambda x, y: (8 * x**3 - 12 * x) * (y)
+sai_10 = lambda x, y: (16 * x**4 - 48 * x**2 + 12) * (y)
+sai_11 = lambda x, y: 1 * (4 * y**2 - 2)
+sai_12 = lambda x, y: x * (4 * y**2 - 2)
+sai_13 = lambda x, y: (4 * x**2 - 2) * (4 * y**2 - 2)
+sai_14 = lambda x, y: (8 * x**3 - 12 * x) * (4 * y**2 - 2)
+sai_15 = lambda x, y: (16 * x**4 - 48 * x**2 + 12) * (4 * y**2 - 2)
+sai_16 = lambda x, y: 1 * (8 * y**3 - 12)
+sai_17 = lambda x, y: x * (8 * y**3 - 12)
+sai_18 = lambda x, y: (4 * x**2 - 2) * (8 * y**3 - 12)
+sai_19 = lambda x, y: (8 * x**3 - 12 * x) * (8 * y**3 - 12)
+sai_20 = lambda x, y: (16 * x**4 - 48 * x**2 + 12) * (8 * y**3 - 12)
+sai_21 = lambda x, y: 1 * (16 * y**4 - 48 * y**2 + 12)
+sai_22 = lambda x, y: x * (16 * y**4 - 48 * y**2 + 12)
+sai_23 = lambda x, y: (4 * x**2 - 2) * (16 * y**4 - 48 * y**2 + 12)
+sai_24 = lambda x, y: (8 * x**3 - 12 * x) * (16 * y**4 - 48 * y**2 + 12)
+sai_25 = lambda x, y: (16 * x**4 - 48 * x**2 + 12) * (16 * y**4 - 48 * y**2 + 12)"""
+
 sai_1 = lambda x, y: 1
 sai_2 = lambda x, y: 2 * x
 sai_3 = lambda x, y: 4 * x**2 - 2
@@ -64,6 +90,32 @@ sai_22 = lambda x, y: 2 * x * (16 * y**4 - 48 * y**2 + 12)
 sai_23 = lambda x, y: (4 * x**2 - 2) * (16 * y**4 - 48 * y**2 + 12)
 sai_24 = lambda x, y: (8 * x**3 - 12 * x) * (16 * y**4 - 48 * y**2 + 12)
 sai_25 = lambda x, y: (16 * x**4 - 48 * x**2 + 12) * (16 * y**4 - 48 * y**2 + 12)
+
+"""sai_1 = lambda x, y: 1
+sai_2 = lambda x, y: x
+sai_3 = lambda x, y: 2 * x**2 - 2
+sai_4 = lambda x, y: 4 * x**3 - 8 * x
+sai_5 = lambda x, y: 8 * x**4 - 28 * x**2 + 12
+sai_6 = lambda x, y: 1 * y
+sai_7 = lambda x, y: x * y
+sai_8 = lambda x, y: (2 * x**2 - 2) * y
+sai_9 = lambda x, y: (4 * x**3 - 8 * x) * y
+sai_10 = lambda x, y: (8 * x**4 - 28 * x**2 + 12) * y
+sai_11 = lambda x, y: 1 * (2 * y**2 - 2)
+sai_12 = lambda x, y: x * (2 * y**2 - 2)
+sai_13 = lambda x, y: (2 * x**2 - 2) * (2 * y**2 - 2)
+sai_14 = lambda x, y: (4 * x**3 - 8 * x) * (2 * y**2 - 2)
+sai_15 = lambda x, y: (8 * x**4 - 28 * x**2 + 12) * (2 * y**2 - 2)
+sai_16 = lambda x, y: 1 * (4 * y**3 - 8 * y)
+sai_17 = lambda x, y: x * (4 * y**3 - 8 * y)
+sai_18 = lambda x, y: (2 * x**2 - 2) * (4 * y**3 - 8 * y)
+sai_19 = lambda x, y: (4 * x**3 - 8 * x) * (4 * y**3 - 8 * y)
+sai_20 = lambda x, y: (8 * x**4 - 28 * x**2 + 12) * (4 * y**3 - 8 * y)
+sai_21 = lambda x, y: 1 * (8 * y**4 - 28 * y**2 + 12)
+sai_22 = lambda x, y: x * (8 * y**4 - 28 * y**2 + 12)
+sai_23 = lambda x, y: (2 * x**2 - 2) * (8 * y**4 - 28 * y**2 + 12)
+sai_24 = lambda x, y: (4 * x**3 - 8 * x) * (8 * y**4 - 28 * y**2 + 12)
+sai_25 = lambda x, y: (8 * x**4 - 28 * x**2 + 12) * (8 * y**4 - 28 * y**2 + 12)"""
 # Testing the concept
 data = np.array([[1, 2],
                  [2, 5],
@@ -97,8 +149,8 @@ for i in range(5):
     t = np.outer(a, b)
     k.append(t)
 r = np.sum(k, axis=0)"""
-N = 100
-data_name = 'gausu_dis'  # , 'Linear''Discrete_Linear，Duffing_oscillator', Discrete_Linear Discrete_Linear_diag
+N = 100000
+data_name = 'spectrum-1'  # , gausu_dis 'Linear''Discrete_Linear，Duffing_oscillator', Discrete_Linear Discrete_Linear_diag gausu_dis
 def data_Preprocessing(tr_val_te):
     data = np.loadtxt(('./data/%s_%s.csv' % (data_name, tr_val_te)), delimiter=',', dtype=np.float64)[:N]
     return data
@@ -168,7 +220,6 @@ mu, w, xi = la.eig(K, left=True, right=True)
 mu_real = [i.real for i in mu]
 mu_imag = [i.imag for i in mu]
 graph(mu_real, mu_imag, "eigenvalue", "scatter")
-
 """B = [1, 1, 1, 1, 1]
 v = (w.T.dot(B)).T  # 本当はエルミート
 print(v)
@@ -234,7 +285,8 @@ adjustment = np.diag(confirm)
 for i in range(M + 3):
     for j in range(M + 3):
         y = adjustment[i]
-        zeta[j][i] = zeta[j][i] / adjustment[i]
+        #zeta[j][i] = zeta[j][i] / adjustment[i]
+        xi[j][i] = xi[j][i] / np.conjugate(adjustment[i])
 """for i in range(M + 3):
     for j in range(M + 3):
         y = adjustment[i]
@@ -242,8 +294,26 @@ for i in range(M + 3):
 
 confirm = np.conjugate(xi.T).dot(zeta)
 # print(np.diag(confirm))
+# print(zeta[:, 4])
+# EDMD確認
+"""jumban = [5, 8, 9, 17, 18, 24, 23, 21]  # [5, 8, 9, 15, 16, 21, 24, 22]  # [5, 8, 9, 17, 18, 24, 23, 21]
+map_phi = np.array([[[0.0 for _ in range(101)] for _ in range(101)] for _ in range(8)])
+for num, koyuti in enumerate(jumban):
+    for i in range(50, -50 - 1, -1):  # y
+        i_f = i / 10
+        for j in range(-50, 50 + 1):  # x
+            j_f = j / 10
+            Sai = sai(j_f, i_f)
+            vec = zeta[:, koyuti]
+            map_phi[num][50 - i][j + 50] = Sai.dot(vec)
+    max_a = max(abs(max(map_phi[num].flatten())), abs(min(map_phi[num].flatten())))
 
-xi = np.conjugate(xi)
+    for i in range(50, -50 - 1, -1):
+        for j in range(-50, 50 + 1):
+            map_phi[num][50 - i][j + 50] /= max_a"""
+
+
+#xi = np.conjugate(xi)
 while count < 10:
     x_data = data[count * width:count * width + width]  # N = 10
     Sai = sai(x_data[0, 0], x_data[0, 1]).reshape(1, 25)
@@ -254,14 +324,18 @@ while count < 10:
 
     # np.conjugate(A.T)  # 転置とって、複素共役！
     """E_reconを計算"""
-    m = B.dot(zeta)  # (xi.T.dot(B)).T  # 本当はエルミート
-    m = m.T
+    #m = B.dot(zeta)  # (xi.T.dot(B)).T  # 本当はエルミート
+    #m = m.T
+    m = xi.T.dot(B.T)
     # sai_T = torch.rand(M + 3, width - 1) * 100
 
     xi_T = xi.T
-    phi = (xi.T).dot(sai_T)
+    #phi = (xi.T).dot(sai_T)
+    phi = Sai.dot(zeta)
+    phi = phi.T
     """ m = (xi.dot(B)).T
      phi = Sai.dot(zeta)"""
+    print(mu)
     x_tilde = [[0, 0] for _ in range(width)]  # [[0, 0]] * (width - 1)
     x_tilde_phi = [[0, 0] for _ in range(width)]
     x_tilde[0][0] = x_data[0][0]
@@ -294,7 +368,8 @@ while count < 10:
         Q = sum([math.pow(mu[k], n) * phi[k][0] * m[k][0] for k in range(M + 3)]).real
         # print([mu[k] ** n for k in range(M + 3)])
         u = sum([mu[k] ** n * phi[k][0] * m[k][0] for k in range(M + 3)])  #  if (k == 0 or k == 1 or k == 3 or k == 5) else 0
-        x_tilde[n][0] = sum([mu[k] ** n * phi[k][0] * m[k][0] for k in range(M + 3)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
+
+        x_tilde[n][0] = sum([(mu[k] ** n) * phi[k][0] * m[k][0] for k in range(M + 3)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
         x_tilde[n][1] = sum([(mu[k] ** n) * phi[k][0] * m[k][1] for k in range(M + 3)]).real
 
         G = [phi[k][1] * m[k][0] for k in range(M + 3)]
@@ -306,11 +381,11 @@ while count < 10:
     print("E_recon", E_recon)
 
     count += 1
-    x_tilde_0 = [i for i, j in x_tilde]
-    x_tilde_phi_0 = [i for i, j in x_tilde_phi]
+    x_tilde_0 = [j for i, j in x_tilde]
+    x_tilde_phi_0 = [j for i, j in x_tilde_phi]
 
     graph([], [], "x1_traj_" + "{stp:02}".format(stp=count), "multi_plot"
-          , x_data[:, 0], x_tilde_0, x_tilde_phi_0)
+          , x_data[:, 1], x_tilde_0, x_tilde_phi_0)
 
 """学習済みのnetを使って，E_eigfuncを計算"""
 I_number = 10
