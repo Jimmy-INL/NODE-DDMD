@@ -150,7 +150,7 @@ for i in range(5):
     k.append(t)
 r = np.sum(k, axis=0)"""
 N = 100000
-data_name = 'spectrum-1'  # , gausu_dis 'Linear''Discrete_Linear，Duffing_oscillator', Discrete_Linear Discrete_Linear_diag gausu_dis
+data_name = 'spectrum'  # , gausu_dis 'Linear''Discrete_Linear，Duffing_oscillator', Discrete_Linear Discrete_Linear_diag gausu_dis
 def data_Preprocessing(tr_val_te):
     data = np.loadtxt(('./data/%s_%s.csv' % (data_name, tr_val_te)), delimiter=',', dtype=np.float64)[:N]
     return data
@@ -171,11 +171,11 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
         plt.grid(True)  # 目盛の表示
     elif type == "multi_plot":
         plt.plot(correct, label="correct")  # 実データ，青
-        plt.plot(predict, label="predict")  # 予測，オレンジ
-        plt.scatter([i for i in range(50)], phi_predict, label="predict", color="palegreen")  # 予測Φ，緑
-        plt.title("x1_trajectory")
+        plt.scatter([i for i in range(50)], predict, label="predict", color="orange")  # 予測，オレンジ
+        # plt.scatter([i for i in range(50)], phi_predict, label="predict", color="palegreen")  # 予測Φ，緑
+        plt.title("x2_trajectory")
         plt.xlabel('n')
-        plt.ylabel('x1')
+        plt.ylabel('x2')
         plt.legend()
     plt.savefig("png/" + name + ".png")
     plt.savefig("eps/" + name + ".eps")
@@ -267,6 +267,7 @@ C = X25.T.dot(np.linalg.inv(rrr.T))
 data = data_Preprocessing("E_recon_50")  #
 width = 50
 
+print(K)
 mu, xi, zeta = la.eig(K, left=True, right=True)
 """print(mu)
 print("#############################")
@@ -295,8 +296,8 @@ for i in range(M + 3):
 confirm = np.conjugate(xi.T).dot(zeta)
 # print(np.diag(confirm))
 # print(zeta[:, 4])
-# EDMD確認
-"""jumban = [5, 8, 9, 17, 18, 24, 23, 21]  # [5, 8, 9, 15, 16, 21, 24, 22]  # [5, 8, 9, 17, 18, 24, 23, 21]
+"""# EDMD確認
+jumban = [5, 8, 9, 17, 18, 24, 23, 21]  # [5, 8, 9, 15, 16, 21, 24, 22]  # [5, 8, 9, 17, 18, 24, 23, 21]
 map_phi = np.array([[[0.0 for _ in range(101)] for _ in range(101)] for _ in range(8)])
 for num, koyuti in enumerate(jumban):
     for i in range(50, -50 - 1, -1):  # y
@@ -384,7 +385,7 @@ while count < 10:
     x_tilde_0 = [j for i, j in x_tilde]
     x_tilde_phi_0 = [j for i, j in x_tilde_phi]
 
-    graph([], [], "x1_traj_" + "{stp:02}".format(stp=count), "multi_plot"
+    graph([], [], "x2_traj_" + "{stp:02}".format(stp=count), "multi_plot"
           , x_data[:, 1], x_tilde_0, x_tilde_phi_0)
 
 """学習済みのnetを使って，E_eigfuncを計算"""
