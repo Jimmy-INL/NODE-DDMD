@@ -149,7 +149,7 @@ for i in range(5):
     t = np.outer(a, b)
     k.append(t)
 r = np.sum(k, axis=0)"""
-N = 100000
+N = 10000
 data_name = 'spectrum'  # , gausu_dis 'Linear''Discrete_Linear，Duffing_oscillator', Discrete_Linear Discrete_Linear_diag gausu_dis
 def data_Preprocessing(tr_val_te):
     data = np.loadtxt(('./data/%s_%s.csv' % (data_name, tr_val_te)), delimiter=',', dtype=np.float64)[:N]

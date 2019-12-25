@@ -148,7 +148,9 @@ graph(mu_real, mu_imag, "eigenvalue", "scatter")
 
 mu = 0
 for tr_val_te in ["E_recon_50"]:
-    B = torch.tensor([[1 if ((i == 22 and j == 0) or (i == 23 and j == 1)) else 0 for i in range(M + 3)] for j in range(2)])
+    #B = torch.tensor([[1 if ((i == 22 and j == 0) or (i == 23 and j == 1)) else 0 for i in range(M + 3)] for j in range(2)])
+    B = torch.tensor(
+        [[1 / 2 if ((i == 1 and j == 0) or (i == 5 and j == 1)) else 0 for i in range(M + 3)] for j in range(2)])
     B = B.detach().numpy()
     #K = K.detach().numpy()
 

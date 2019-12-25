@@ -15,7 +15,7 @@ from matplotlib import pyplot as plt
 from scipy.stats import uniform
 
 
-data_name = 'spectrum-1'  # 'Duffing_oscillator', 'Linear'，Discrete_Linear Duffing_oscillator spectrum-1
+data_name = 'spectrum'  # 'Duffing_oscillator', 'Linear'，Discrete_Linear Duffing_oscillator spectrum-1
 
 
 
@@ -29,7 +29,7 @@ lambda_ = 1e-6  # 1e-6
 epsilon = 0.1
 
 d = 2
-l = 300  # 70
+l = 100  # 70
 M = 22  # 22
 I = torch.eye(M + 3, M + 3)
 
@@ -97,9 +97,9 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
         plt.plot(correct, label="correct")  # 実データ，青
         plt.plot(predict, label="predict")  # 予測，オレンジ
         plt.plot(phi_predict, label="predict")  # 予測Φ，緑
-        plt.title("x1_trajectory")
+        plt.title("x2_trajectory")
         plt.xlabel('n')
-        plt.ylabel('x1')
+        plt.ylabel('x2')
         plt.legend()
     plt.savefig("png/" + name + ".png")
     plt.savefig("eps/" + name + ".eps")
@@ -159,8 +159,17 @@ while count < rotation:
     G = inv_N * torch.mm(pred_sai_T, pred_sai)  # 本当はエルミート
     A = inv_N * torch.mm(pred_sai_T, y_pred_sai)
 
-    # K_tilde = torch.mm(p_inv(G + lambda_ * I), A)  # pinverseを使うとおかしくなるのでp_invで代用
-    K_tilde = torch.mm(torch.inverse(G + lambda_ * I), A)
+    """G = torch.ger(pred_sai[0], pred_sai[0])
+    A = torch.ger(pred_sai[0], y_pred_sai[0])
+    for i in range(1, N):
+        G += torch.ger(pred_sai[i], pred_sai[i])
+        A += torch.ger(pred_sai[i], y_pred_sai[i])
+    G *= 1 / N
+    A *= 1 / N"""
+
+    #K_tilde = torch.mm(p_inv(G + lambda_ * I), A)  # pinverseを使うとおかしくなるのでp_invで代用
+    #K_tilde = torch.mm(torch.pinverse(G + lambda_ * I), A)
+    K_tilde = torch.mm(torch.inverse(G + lambda_ * I), A)  # + lambda_ * I
     K_tilde = torch.tensor(K_tilde, requires_grad=False)
 
     Pred = torch.mm(K_tilde, pred_sai_T)
@@ -319,7 +328,7 @@ for tr_val_te in ["E_recon_50"]:
         x_tilde_0 = [j for i, j in x_tilde]
         x_tilde_phi_0 = [j for i, j in x_tilde_phi]
 
-        graph([], [], "x1_traj_" + "{stp:02}".format(stp=count), "multi_plot"
+        graph([], [], "x2_traj_" + "{stp:02}".format(stp=count), "multi_plot"
               , x_data[:, 1], x_tilde_0, x_tilde_phi_0)
 
 
