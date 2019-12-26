@@ -15,7 +15,7 @@ from matplotlib import pyplot as plt
 from scipy.stats import uniform
 
 
-data_name = 'spectrum'  # 'Duffing_oscillator', 'Linear'，Discrete_Linear Duffing_oscillator spectrum-1
+data_name = 'spectrum-1'  # 'Duffing_oscillator', 'Linear'，Discrete_Linear Duffing_oscillator spectrum-1
 
 
 
@@ -23,7 +23,7 @@ def J(K, theta):
     pass
 
 
-lambda_ = 1e-6  # 1e-6
+lambda_ = 1e-2  # 1e-6
 
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
 epsilon = 0.1
@@ -40,15 +40,18 @@ inv_N = 1/N  #0.1
 net = nn.Sequential(
     nn.Linear(d, l),
     nn.Tanh(),
+    #nn.ReLU(),
     nn.Linear(l, l),
     nn.Tanh(),
+    #nn.ReLU(),
     #nn.Dropout(0.5),
     nn.Linear(l, l),
     nn.Tanh(),
+    #nn.ReLU(),
     nn.Linear(l, M),
 )
 # optimizer = optim.SGD(net.parameters(), lr=2e-4)
-optimizer = optim.Adam(net.parameters(), lr=1e-4)  # 1e-4
+optimizer = optim.Adam(net.parameters(), lr=1e-3)  # 1e-4
 loss_fn = nn.MSELoss()  # J(K, theta)
 
 def data_Preprocessing(tr_val_te):
@@ -122,9 +125,11 @@ y_data = data_Preprocessing("train_y")
 data = torch.tensor(data, dtype=torch.float32)"""
 # if tr_val_te != "train":
 count = 0
-rotation = 1000
+rotation = 1300
 x = [i for i in range(rotation)]
 
+
+#lambda_ = 1e-2 l = 100 lr=1e-3 rotation = 1500
 # パラメータカウント
 """params = 0
 for p in net.parameters():
