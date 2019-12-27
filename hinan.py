@@ -17,19 +17,22 @@ from torchdiffeq import odeint
 # from torchdiffeq import odeint_adjoint as odeint
 
 
-data_name = 'Discrete_Linear'  # 'Duffing_oscillator', 'Linear'
+data_name = 'spectrum'  # 'Duffing_oscillator', 'Linear'，Discrete_Linear Duffing_oscillator spectrum-1 'Discrete_Linear'
 
 
 
 def J(K, theta):
     pass
 
-d = 2
-l = 150
-M = 22  # 22
+lambda_ = 1e-2
 
+
+d = 2
+l = 100
+M = 22  # 22
 middle = 50
 
+I = torch.tensor(np.eye(25, 25), dtype=torch.float32)
 class ODEFunc(nn.Module):
 
     def __init__(self):
@@ -61,6 +64,13 @@ after_net = nn.Sequential(
 
 N = 10000
 inv_N = 1/N  # 0.1
+epsilon = 30
+net = ODEFunc()
+
+# optimizer = optim.SGD(net.parameters(), lr=1e-5)
+optimizer = optim.Adam(net.parameters(), lr=1e-3)
+loss_fn = nn.MSELoss()  # J(K, theta)
+
 
 def data_Preprocessing(tr_val_te):
     data = np.loadtxt(('./data/%s_%s.csv' % (data_name, tr_val_te)), delimiter=',', dtype=np.float64)[:N]
@@ -106,11 +116,12 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
         plt.grid(True)  # 目盛の表示
     elif type == "multi_plot":
         plt.plot(correct, label="correct")  # 実データ，青
-        plt.plot(predict, label="predict")  # 予測，オレンジ
-        plt.plot(phi_predict, label="predict")  # 予測Φ，緑
-        plt.title("x1_trajectory")
+        #plt.plot(predict, label="predict")  # 予測，オレンジ
+        plt.scatter([i for i in range(50)], predict, label="predict", color="orange")  # 予測，オレンジ
+        #plt.plot(phi_predict, label="predict")  # 予測Φ，緑
+        plt.title("x2_trajectory")
         plt.xlabel('n')
-        plt.ylabel('x1')
+        plt.ylabel('x2')
         plt.legend()
     plt.savefig("png/" + name + ".png")
     plt.savefig("eps/" + name + ".eps")
@@ -132,11 +143,8 @@ min_loss = float("INF")
 y = []
 
 
-lambda_ = 1e-3
-I = torch.tensor(np.eye(25, 25), dtype=torch.float32)
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
-epsilon = 0.1
-net = ODEFunc()
+
 """net = nn.Sequential(
     nn.Linear(d, l),
     nn.Tanh(),
@@ -152,9 +160,7 @@ nn.Linear(l, l),
         nn.Tanh(),
         nn.Linear(middle, l),
     )"""
-# optimizer = optim.SGD(net.parameters(), lr=1e-5)
-optimizer = optim.Adam(net.parameters(), lr=1e-4)
-loss_fn = nn.MSELoss()  # J(K, theta)
+
 
 # while J(K, theta) > epsilon:
 x = []
@@ -168,8 +174,8 @@ K_tilde = []
 x_data = data_Preprocessing("train_x")
 y_data = data_Preprocessing("train_y")
 count = 0
-rotation = 1
-x = [i for i in range(rotation)]
+rotation = 1500
+
 
 # パラメータカウント
 params = 0
@@ -187,7 +193,8 @@ for p in after_net.parameters():
 print("parameterの数", params)
 # exit()
 
-while count < rotation:
+loss = float("INF")
+while count < rotation and loss > epsilon:
     if count % 100 == 0:
         print(count)
     optimizer.zero_grad()
@@ -253,6 +260,8 @@ while count < rotation:
     optimizer.step()
 
     count += 1
+
+x = [i for i in range(count)]
 graph(x, y, "train", "plot")
 count = 0
 
@@ -285,6 +294,7 @@ for tr_val_te in ["E_recon_50"]:
 
     # Sai = torch.transpose(Sai, 0, 1)
     B = torch.mm(X25, torch.inverse(Sai))
+    B = torch.tensor([[1 if ((i == 22 and j == 0) or (i == 23 and j == 1)) else 0 for i in range(M + 3)] for j in range(2)])
     B = B.detach().numpy()
     K = K.detach().numpy()
 
@@ -304,9 +314,9 @@ for tr_val_te in ["E_recon_50"]:
             xi[j][i] = xi[j][i] / np.conjugate(adjustment[i])
 
     confirm = np.conjugate(xi.T).dot(zeta)
-    print(np.diag(confirm))
+    #print(np.diag(confirm))
 
-    xi = np.conjugate(xi)
+    #xi = np.conjugate(xi)
     """"# mu zeta = K zeta
     # mu z = K.T z
     # mu z.T = z.T K，xi = z.T
@@ -324,7 +334,7 @@ for tr_val_te in ["E_recon_50"]:
     mu_imag = [i.imag for i in mu]
     graph(mu_real, mu_imag, "eigenvalue", "scatter")
 
-    while count < 9:
+    while count < 10:
         x_data = data[count * width:count * width + width]  # N = 10
         sai = total_net(x_data)
         fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
@@ -332,19 +342,30 @@ for tr_val_te in ["E_recon_50"]:
         sai_T = sai.T
 
         """E_reconを計算"""
-        m = B.dot(zeta)  # (xi.T.dot(B)).T  # 本当はエルミート
-        m = m.T
+        # m = B.dot(zeta)  # (xi.T.dot(B)).T  # 本当はエルミート
+        # m = m.T
+        m = xi.T.dot(B.T)
+
         # sai_T = torch.rand(M + 3, width - 1) * 100
-        phi = (xi.T).dot(sai_T)
+        # phi = (xi.T).dot(sai_T)
+        phi = sai.dot(zeta)
+        phi = phi.T
+
+        """for kk in range(M + 3):
+            print("-----------------------", kk, "--------------------------------------")
+            for i in range(1, width):
+                # print(Phi[10][i - 1] / Phi[10][i], Mu[10])
+                print(phi[kk][i] / phi[kk][i - 1], mu[kk])"""
+
 
         x_tilde = [[0, 0] for _ in range(width)]  # [[0, 0]] * (width - 1)
         x_tilde_phi = [[0, 0] for _ in range(width)]
-        x_tilde[0][0] = x_data[0][0]
-        x_tilde[0][1] = x_data[0][1]
-        x_tilde_phi[0][0] = x_data[0][0]
-        x_tilde_phi[0][1] = x_data[0][1]
+        x_tilde[0][0] = float(x_data[0][0])
+        x_tilde[0][1] = float(x_data[0][1])
+        x_tilde_phi[0][0] = float(x_data[0][0])
+        x_tilde_phi[0][1] = float(x_data[0][1])
         for n in range(1, width):
-            print((mu[1] ** n) * phi[1][0], phi[1][n])
+            #print((mu[1] ** n) * phi[1][0], phi[1][n])
             x_tilde[n][0] = sum([(mu[k] ** n) * phi[k][0] * m[k][0] for k in range(M + 3)]).real  # sum([(mu[k] ** count) * true_phi[k] * data_val[count] * v[k] for k in range(25)])
             x_tilde[n][1] = sum([(mu[k] ** n) * phi[k][0] * m[k][1] for k in range(M + 3)]).real
 
@@ -357,21 +378,39 @@ for tr_val_te in ["E_recon_50"]:
         print("E_recon", E_recon)
 
         count += 1
+
         x_tilde_0 = [i for i, j in x_tilde]
         x_tilde_phi_0 = [i for i, j in x_tilde_phi]
 
         graph([], [], "x1_traj_" + "{stp:02}".format(stp=count), "multi_plot"
               , x_data[:, 0], x_tilde_0, x_tilde_phi_0)
 
+        x_tilde_1 = [j for i, j in x_tilde]
+        x_tilde_phi_1 = [j for i, j in x_tilde_phi]
+
+        graph([], [], "x2_traj_" + "{stp:02}".format(stp=count), "multi_plot"
+              , x_data[:, 1], x_tilde_1, x_tilde_phi_1)
+
 
 """学習済みのnetを使って，E_eigfuncを計算"""
 I_number = 1000
-data = data_Preprocessing("E_eigfunc_confirm")
+data = data_Preprocessing("E_eigfunc")
 width = 2
 phi_list = [[0 for count in range(I_number)] for j in range(25)]
 y_phi_list = [[0 for count in range(I_number)] for j in range(25)]
 
 for count in range(I_number):
+    x_data = data[count * width:count * width + width]
+    pred_sai = net(x_data)  # count * 50 : count * 50 + 50
+    fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
+    pred_sai = torch.cat([pred_sai, fixed_sai], dim=1).detach().numpy()
+    pred_phi = (xi.T).dot(pred_sai.T)
+
+    for j in range(M + 3):
+        phi_list[j][count] = pred_phi[j][0]
+        y_phi_list[j][count] = pred_phi[j][1]
+
+"""for count in range(I_number):
     x_data = data[count * width:count * width + width]
     pred_sai = total_net(x_data)  # count * 50 : count * 50 + 50
     pred_sai = (xi.T).dot(pred_sai.T)
@@ -387,14 +426,13 @@ for count in range(I_number):
             y_phi_list[j][count] = x_data[1][1].detach().numpy()
         elif j == M + 2:
             phi_list[j][count] = 0.1
-            y_phi_list[j][count] = 0.1
+            y_phi_list[j][count] = 0.1"""
 
-
-phi_list = phi_list
-y_phi_list = y_phi_list
 """E_eigfunc_jを計算"""
 E_eigfunc = [0] * (M + 3)
 for j in range(M + 3):
-    E_eigfunc[j] = np.sqrt(1 / I_number * sum([abs(y_phi_list[j][count] - mu[j] * phi_list[j][count]) ** 2
-                                   for count in range(I_number)]))
+    tmp = [(y_phi_list[j][count] - mu[j] * phi_list[j][count]).real ** 2
+           + (y_phi_list[j][count] - mu[j] * phi_list[j][count]).imag ** 2
+                                   for count in range(I_number)]
+    E_eigfunc[j] = np.sqrt(1 / I_number * sum(tmp))
     print("E_eigfunc", E_eigfunc[j])

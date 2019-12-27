@@ -28,8 +28,8 @@ def make_csv(filename, X):
 
 
 ###############Discrete_Linear#############################
-filenamePrefix = 'gausu_dis'
-seed = 10
+filenamePrefix = 'spectrum'
+"""seed = 10
 X_train = Discrete_Linear_ODE(x1range, x2range, 100, np.arange(0, 0.25 - 0.1, 0.25), seed, "x") # 0, 2.5, 0.25
 filename_train = filenamePrefix + '_train_x.csv'
 make_csv(filename_train, X_train)
@@ -44,8 +44,12 @@ seed = 1
 tSpan = np.arange(0, 12.5, 0.25)  # 0, 12.5, 0.25
 X_train = Discrete_Linear_ODE(x1range, x2range, round(1 * numICs), tSpan, seed)
 filename_train = filenamePrefix + "_E_recon_50" + '.csv'
+make_csv(filename_train, X_train)"""
+seed = 3
+tSpan = np.arange(0, 0.25 + 0.1, 0.25)  # 0, 12.5, 0.25
+X_train = Linear_ODE(x1range, x2range, 10000, tSpan, seed)
+filename_train = filenamePrefix + "_E_eigfunc" + '.csv'
 make_csv(filename_train, X_train)
-
 """seed = 1
 X_test = Duffing_oscillator_ODE(x1range, x2range, round(1 * numICs), tSpan, seed)
 filename_test = filenamePrefix + '_test_x.csv'

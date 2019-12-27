@@ -8,18 +8,18 @@ def Linear_ODE(x1range, x2range, numICs, tSpan, seed, type="z"):
     # try some initial conditions for x1, x2
     np.random.seed(seed=seed)
 
-    def dynsys(x, t):
+    """def dynsys(x, t):
         dydt = np.zeros_like(x)
         dydt[0] = 0.9 * x[0] - 0.1 * x[1]
         dydt[1] = 0.8 * x[1]
-        return dydt
+        return dydt"""
 
 
-    """def dynsys(x, t):
+    def dynsys(x, t):
         dydt = np.zeros_like(x)
         dydt[0] = (-0.7) * (x[0])
         dydt[1] = (-0.8) * ((x[1]) - (x[0]) ** 2)
-        return dydt"""
+        return dydt
     """a, b, c, d = 1, -1, 0.02, 0.7  # mu = 0.8, 0.9
     def dynsys(x, t):
         dydt = np.zeros_like(x)
