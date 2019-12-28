@@ -25,18 +25,6 @@ from scipy.linalg import svd, svdvals
 from scipy.integrate import odeint, ode, complex_ode
 from warnings import warn
 
-# define time and space domains
-x = np.linspace(-10, 10, 100)
-t = np.linspace(0, 6 * pi, 80)
-dt = t[2] - t[1]
-Xm, Tm = np.meshgrid(x, t)
-
-A12 = np.array([[-1, 1, 0],
-                [0, -1, 1],
-                [1, 0, -1]])  # Unknown head nodes incidence matrix
-A10 = 3
-
-
 
 # Extended Dynamic Mode Decomposition
 """sai_1 = lambda x, y: 1
@@ -117,13 +105,6 @@ sai_23 = lambda x, y: (2 * x**2 - 2) * (8 * y**4 - 28 * y**2 + 12)
 sai_24 = lambda x, y: (4 * x**3 - 8 * x) * (8 * y**4 - 28 * y**2 + 12)
 sai_25 = lambda x, y: (8 * x**4 - 28 * x**2 + 12) * (8 * y**4 - 28 * y**2 + 12)"""
 # Testing the concept
-data = np.array([[1, 2],
-                 [2, 5],
-                 [3, 10],
-                 [4, 17],
-                 [5, 26],
-                 [6, 37]])
-
 
 """sai_2 = lambda x: x
 sai_3 = lambda x: x**2 - 1
@@ -142,13 +123,6 @@ sai = lambda x, y: np.array([sai_1(x, y), sai_2(x, y), sai_3(x, y), sai_4(x, y),
 a = [1, 1, 1, 1, 1, 1]
 #phi = lambda a: sum([sai[i] * a[i] for i in range(6)])
 
-"""k = []
-for i in range(5):
-    a = sai(data[i, 0]).T
-    b = sai(data[i, 0])
-    t = np.outer(a, b)
-    k.append(t)
-r = np.sum(k, axis=0)"""
 N = 10000
 data_name = 'spectrum'  # , gausu_dis 'Linear''Discrete_Linear，Duffing_oscillator', Discrete_Linear Discrete_Linear_diag gausu_dis
 def data_Preprocessing(tr_val_te):

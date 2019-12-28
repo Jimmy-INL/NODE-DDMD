@@ -8,13 +8,14 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import cloudpickle
 
 import numpy as np
 from scipy import linalg as la
 from matplotlib import pyplot as plt
 
-from torchdiffeq import odeint
-# from torchdiffeq import odeint_adjoint as odeint
+# from torchdiffeq import odeint
+from torchdiffeq import odeint_adjoint as odeint
 
 
 data_name = 'spectrum'  # 'Duffing_oscillator', 'Linear'，Discrete_Linear Duffing_oscillator spectrum-1 'Discrete_Linear'
@@ -64,13 +65,19 @@ after_net = nn.Sequential(
 
 N = 10000
 inv_N = 1/N  # 0.1
-epsilon = 30
+epsilon = 18
 net = ODEFunc()
 
 # optimizer = optim.SGD(net.parameters(), lr=1e-5)
 optimizer = optim.Adam(net.parameters(), lr=1e-3)
 loss_fn = nn.MSELoss()  # J(K, theta)
 
+"""with open('NODE_before_net.pkl', 'rb') as f:
+    before_net = cloudpickle.load(f)
+with open('NODE_net.pkl', 'rb') as f:
+    net = cloudpickle.load(f)
+with open('NODE_after_net.pkl', 'rb') as f:
+    after_net = cloudpickle.load(f)"""
 
 def data_Preprocessing(tr_val_te):
     data = np.loadtxt(('./data/%s_%s.csv' % (data_name, tr_val_te)), delimiter=',', dtype=np.float64)[:N]
@@ -167,14 +174,13 @@ x = []
 y = []
 X = []
 Y = []
-count = 0
 K_tilde = []
 
 """netを学習"""
 x_data = data_Preprocessing("train_x")
 y_data = data_Preprocessing("train_y")
 count = 0
-rotation = 1500
+rotation = 350
 
 
 # パラメータカウント
@@ -194,7 +200,7 @@ print("parameterの数", params)
 # exit()
 
 loss = float("INF")
-while count < rotation and loss > epsilon:
+while count < rotation and loss > epsilon:  # count < rotation and
     if count % 100 == 0:
         print(count)
     optimizer.zero_grad()
@@ -265,6 +271,12 @@ x = [i for i in range(count)]
 graph(x, y, "train", "plot")
 count = 0
 
+with open('NODE_before_net.pkl', 'wb') as f:
+    cloudpickle.dump(before_net, f)
+with open('NODE_net.pkl', 'wb') as f:
+    cloudpickle.dump(net, f)
+with open('NODE_after_net.pkl', 'wb') as f:
+    cloudpickle.dump(after_net, f)
 
 """学習済みのnetを使って，E_reconを計算"""
 K = K_tilde # torch.rand(25, 25) #K_tilde

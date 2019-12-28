@@ -7,6 +7,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import cloudpickle
 
 import numpy as np
 from scipy import linalg as la
@@ -23,10 +24,11 @@ def J(K, theta):
     pass
 
 
+
 lambda_ = 1e-2  # 1e-6
 
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
-epsilon = 18
+epsilon = 17
 
 d = 2
 l = 100  # 70
@@ -37,7 +39,7 @@ N = 10000
 #width = 11  #11
 inv_N = 1/N  #0.1
 
-net = nn.Sequential(
+"""net = nn.Sequential(
     nn.Linear(d, l),
     nn.Tanh(),
     #nn.ReLU(),
@@ -49,7 +51,12 @@ net = nn.Sequential(
     nn.Tanh(),
     #nn.ReLU(),
     nn.Linear(l, M),
-)
+)"""
+
+
+with open('MLP_net.pkl', 'rb') as f:
+    net = cloudpickle.load(f)
+
 # optimizer = optim.SGD(net.parameters(), lr=2e-4)
 optimizer = optim.Adam(net.parameters(), lr=1e-3)  # 1e-4
 loss_fn = nn.MSELoss()  # J(K, theta)
@@ -101,9 +108,9 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
         #plt.plot(predict, label="predict")  # 予測，オレンジ
         plt.scatter([i for i in range(50)], predict, label="predict", color="orange")  # 予測，オレンジ
         #plt.plot(phi_predict, label="predict")  # 予測Φ，緑
-        plt.title("x2_trajectory")
+        plt.title(name[:2] + "_trajectory")
         plt.xlabel('n')
-        plt.ylabel('x2')
+        plt.ylabel(name[:2])
         plt.legend()
     plt.savefig("png/" + name + ".png")
     plt.savefig("eps/" + name + ".eps")
@@ -125,8 +132,12 @@ y_data = data_Preprocessing("train_y")
 """data = np.loadtxt('./data/E_recon_50.csv', delimiter=',', dtype=np.float64)
 data = torch.tensor(data, dtype=torch.float32)"""
 # if tr_val_te != "train":
+
+
+#exit()
+
 count = 0
-rotation = 30000
+rotation = 10000
 
 
 #lambda_ = 1e-2 l = 100 lr=1e-3 rotation = 1500
@@ -141,7 +152,7 @@ print("parameterの数", params)
 exit()"""
 
 loss = float("INF")
-while count < rotation and loss > epsilon:
+while loss > epsilon:  # count < rotation and
     if count % 100 == 0:
         print(count)
     optimizer.zero_grad()
@@ -221,6 +232,8 @@ x = [i for i in range(count)]
 graph(x, y, "train", "plot")
 count = 0
 
+with open('MLP_net.pkl', 'wb') as f:
+    cloudpickle.dump(net, f)
 
 """学習済みのnetを使って，E_reconを計算"""
 K = K_tilde # torch.rand(25, 25) #K_tilde
