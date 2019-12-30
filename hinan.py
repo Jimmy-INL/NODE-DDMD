@@ -68,16 +68,17 @@ inv_N = 1/N  # 0.1
 epsilon = 18
 net = ODEFunc()
 
-# optimizer = optim.SGD(net.parameters(), lr=1e-5)
-optimizer = optim.Adam(net.parameters(), lr=1e-3)
-loss_fn = nn.MSELoss()  # J(K, theta)
-
-"""with open('NODE_before_net.pkl', 'rb') as f:
+with open('NODE_before_net.pkl', 'rb') as f:
     before_net = cloudpickle.load(f)
 with open('NODE_net.pkl', 'rb') as f:
     net = cloudpickle.load(f)
 with open('NODE_after_net.pkl', 'rb') as f:
-    after_net = cloudpickle.load(f)"""
+    after_net = cloudpickle.load(f)
+
+# optimizer = optim.SGD(net.parameters(), lr=1e-5)
+optimizer = optim.Adam(net.parameters(), lr=1e-3)
+loss_fn = nn.MSELoss()  # J(K, theta)
+
 
 def data_Preprocessing(tr_val_te):
     data = np.loadtxt(('./data/%s_%s.csv' % (data_name, tr_val_te)), delimiter=',', dtype=np.float64)[:N]
@@ -126,9 +127,9 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
         #plt.plot(predict, label="predict")  # 予測，オレンジ
         plt.scatter([i for i in range(50)], predict, label="predict", color="orange")  # 予測，オレンジ
         #plt.plot(phi_predict, label="predict")  # 予測Φ，緑
-        plt.title("x2_trajectory")
+        plt.title(name[:2] + "_trajectory")
         plt.xlabel('n')
-        plt.ylabel('x2')
+        plt.ylabel(name[:2])
         plt.legend()
     plt.savefig("png/" + name + ".png")
     plt.savefig("eps/" + name + ".eps")
@@ -200,16 +201,25 @@ print("parameterの数", params)
 # exit()
 
 loss = float("INF")
-while count < rotation and loss > epsilon:  # count < rotation and
+while loss > epsilon:  # count < rotation and
     if count % 100 == 0:
         print(count)
+        if loss < 25:
+
+            with open('NODE_before_net.pkl', 'wb') as f:
+                cloudpickle.dump(before_net, f)
+            with open('NODE_net.pkl', 'wb') as f:
+                cloudpickle.dump(net, f)
+            with open('NODE_after_net.pkl', 'wb') as f:
+                cloudpickle.dump(after_net, f)
+
     optimizer.zero_grad()
 
     #x_data = data[count * width:count * width + width - 1]  # 0～9，11～20，
 
     #y_data = data[count * width + 1:count * width + width]  # 1～10，12～21，
-    pred_sai = total_net(x_data)  # count * 50 : count * 50 + 50
-    y_pred_sai = total_net(y_data)
+    pred_sai = total_net(x_data)  # 少し時間がかかる
+    y_pred_sai = total_net(y_data)  # 少し時間がかかる
 
     #fixed_sai = torch.cat([x_data, torch.tensor([[0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1]])], dim=1)
     #y_fixed_sai = torch.cat([y_data, torch.tensor([[0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1]])], dim=1)
@@ -225,7 +235,8 @@ while count < rotation and loss > epsilon:  # count < rotation and
     A = inv_N * torch.mm(pred_sai_T, y_pred_sai)
 
     # K_tilde = torch.mm(p_inv(G + lambda_ * I), A)  # pinverseを使うとおかしくなるのでp_invで代用
-    K_tilde = torch.mm(torch.inverse(G + lambda_ * I), A)
+    K_tilde = torch.mm(torch.pinverse(G + lambda_ * I), A)
+    #K_tilde = torch.mm(torch.inverse(G + lambda_ * I), A)
     K_tilde = torch.tensor(K_tilde, requires_grad=False)
 
     Pred = torch.mm(K_tilde, pred_sai_T)
@@ -262,7 +273,7 @@ while count < rotation and loss > epsilon:  # count < rotation and
     y.append(loss)
     print("loss", loss)
     # print(net.parameters().item())
-    loss.backward()
+    loss.backward()  # 結構時間がかかる
     optimizer.step()
 
     count += 1
@@ -387,7 +398,7 @@ for tr_val_te in ["E_recon_50"]:
         x_data = x_data.detach().numpy()
         E_recon = (inv_N * sum([abs(x_data[n][0] - x_tilde[n][0]) ** 2 + abs(x_data[n][1] - x_tilde[n][1]) ** 2
                                 for n in range(width)])) ** 0.5
-        print("E_recon", E_recon)
+        print(count, "E_recon", E_recon)
 
         count += 1
 
@@ -413,7 +424,7 @@ y_phi_list = [[0 for count in range(I_number)] for j in range(25)]
 
 for count in range(I_number):
     x_data = data[count * width:count * width + width]
-    pred_sai = net(x_data)  # count * 50 : count * 50 + 50
+    pred_sai = total_net(x_data)  # count * 50 : count * 50 + 50
     fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
     pred_sai = torch.cat([pred_sai, fixed_sai], dim=1).detach().numpy()
     pred_phi = (xi.T).dot(pred_sai.T)
@@ -447,4 +458,4 @@ for j in range(M + 3):
            + (y_phi_list[j][count] - mu[j] * phi_list[j][count]).imag ** 2
                                    for count in range(I_number)]
     E_eigfunc[j] = np.sqrt(1 / I_number * sum(tmp))
-    print("E_eigfunc", E_eigfunc[j])
+    print(j, "E_eigfunc", E_eigfunc[j])

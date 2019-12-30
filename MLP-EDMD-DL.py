@@ -185,8 +185,8 @@ while loss > epsilon:  # count < rotation and
     A *= 1 / N"""
 
     #K_tilde = torch.mm(p_inv(G + lambda_ * I), A)  # pinverseを使うとおかしくなるのでp_invで代用
-    #K_tilde = torch.mm(torch.pinverse(G + lambda_ * I), A)
-    K_tilde = torch.mm(torch.inverse(G + lambda_ * I), A)  # + lambda_ * I
+    K_tilde = torch.mm(torch.pinverse(G + lambda_ * I), A)
+    #K_tilde = torch.mm(torch.inverse(G + lambda_ * I), A)  # + lambda_ * I
     K_tilde = torch.tensor(K_tilde, requires_grad=False)
 
     Pred = torch.mm(K_tilde, pred_sai_T)
