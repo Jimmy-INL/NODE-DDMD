@@ -65,7 +65,7 @@ after_net = nn.Sequential(
 
 N = 10000
 inv_N = 1/N  # 0.1
-epsilon = 18
+epsilon = 18.7643#18.5134
 net = ODEFunc()
 
 with open('NODE_before_net.pkl', 'rb') as f:
@@ -80,8 +80,8 @@ optimizer = optim.Adam(net.parameters(), lr=1e-3)
 loss_fn = nn.MSELoss()  # J(K, theta)
 
 
-def data_Preprocessing(tr_val_te):
-    data = np.loadtxt(('./data/%s_%s.csv' % (data_name, tr_val_te)), delimiter=',', dtype=np.float64)[:N]
+def data_Preprocessing(tr_val_te, cut):
+    data = np.loadtxt(('./data/%s_%s.csv' % (data_name, tr_val_te)), delimiter=',', dtype=np.float64)[:cut]
     # np.loadtxt(('./data/%s_val_x.csv' % (params['data_name'])), delimiter=',', dtype=np.float64)  # ここでデータを読み込む
     data = torch.tensor(data, dtype=torch.float32)
     return data
@@ -123,9 +123,9 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
         plt.ylabel('Im(μ)')
         plt.grid(True)  # 目盛の表示
     elif type == "multi_plot":
-        plt.plot(correct, label="correct")  # 実データ，青
+        plt.plot(correct, label="exact")  # 実データ，青
         #plt.plot(predict, label="predict")  # 予測，オレンジ
-        plt.scatter([i for i in range(50)], predict, label="predict", color="orange")  # 予測，オレンジ
+        plt.scatter([i for i in range(50)], predict, label="predictive", color="orange")  # 予測，オレンジ
         #plt.plot(phi_predict, label="predict")  # 予測Φ，緑
         plt.title(name[:2] + "_trajectory")
         plt.xlabel('n')
@@ -178,8 +178,8 @@ Y = []
 K_tilde = []
 
 """netを学習"""
-x_data = data_Preprocessing("train_x")
-y_data = data_Preprocessing("train_y")
+x_data = data_Preprocessing("train_x", N)
+y_data = data_Preprocessing("train_y", N)
 count = 0
 rotation = 350
 
@@ -200,18 +200,28 @@ for p in after_net.parameters():
 print("parameterの数", params)
 # exit()
 
-loss = float("INF")
-while loss > epsilon:  # count < rotation and
-    if count % 100 == 0:
+loss = 18.7644#18.5135
+min_loss = loss
+while loss > epsilon: #and count < 1:  # count < rotation and
+    if count % 50 == 0:
         print(count)
-        if loss < 25:
 
-            with open('NODE_before_net.pkl', 'wb') as f:
-                cloudpickle.dump(before_net, f)
-            with open('NODE_net.pkl', 'wb') as f:
-                cloudpickle.dump(net, f)
-            with open('NODE_after_net.pkl', 'wb') as f:
-                cloudpickle.dump(after_net, f)
+    if loss < min_loss:  # lowest_lossのときのNNを記録
+        with open('NODE_before_net.pkl', 'wb') as f:
+            cloudpickle.dump(before_net, f)
+        with open('NODE_net.pkl', 'wb') as f:
+            cloudpickle.dump(net, f)
+        with open('NODE_after_net.pkl', 'wb') as f:
+            cloudpickle.dump(after_net, f)
+        min_loss = loss
+
+    # 最新のNNを記録
+    """with open('NODE_before_net_now.pkl', 'wb') as f:
+        cloudpickle.dump(before_net, f)
+    with open('NODE_net_now.pkl', 'wb') as f:
+        cloudpickle.dump(net, f)
+    with open('NODE_after_net_now.pkl', 'wb') as f:
+        cloudpickle.dump(after_net, f)"""
 
     optimizer.zero_grad()
 
@@ -272,6 +282,7 @@ while loss > epsilon:  # count < rotation and
     # if loss < 1.5:
     y.append(loss)
     print("loss", loss)
+
     # print(net.parameters().item())
     loss.backward()  # 結構時間がかかる
     optimizer.step()
@@ -293,7 +304,7 @@ with open('NODE_after_net.pkl', 'wb') as f:
 K = K_tilde # torch.rand(25, 25) #K_tilde
 mu = 0
 for tr_val_te in ["E_recon_50"]:
-    data = data_Preprocessing("train_x")
+    data = data_Preprocessing("train_x", N)
     count = 0
     width = 10
     """Bを計算，X=BΨ"""
@@ -321,7 +332,7 @@ for tr_val_te in ["E_recon_50"]:
     B = B.detach().numpy()
     K = K.detach().numpy()
 
-    data = data_Preprocessing("E_recon_50")
+    data = data_Preprocessing("E_recon_50", N)
     width = 50
 
     mu, xi, zeta = la.eig(K, left=True, right=True)
@@ -398,9 +409,9 @@ for tr_val_te in ["E_recon_50"]:
         x_data = x_data.detach().numpy()
         E_recon = (inv_N * sum([abs(x_data[n][0] - x_tilde[n][0]) ** 2 + abs(x_data[n][1] - x_tilde[n][1]) ** 2
                                 for n in range(width)])) ** 0.5
-        print(count, "E_recon", E_recon)
 
         count += 1
+        print(count, "E_recon", E_recon)
 
         x_tilde_0 = [i for i, j in x_tilde]
         x_tilde_phi_0 = [i for i, j in x_tilde_phi]
@@ -416,8 +427,8 @@ for tr_val_te in ["E_recon_50"]:
 
 
 """学習済みのnetを使って，E_eigfuncを計算"""
-I_number = 1000
-data = data_Preprocessing("E_eigfunc")
+I_number = 10000
+data = data_Preprocessing("E_eigfunc", I_number * width)
 width = 2
 phi_list = [[0 for count in range(I_number)] for j in range(25)]
 y_phi_list = [[0 for count in range(I_number)] for j in range(25)]
@@ -427,7 +438,9 @@ for count in range(I_number):
     pred_sai = total_net(x_data)  # count * 50 : count * 50 + 50
     fixed_sai = torch.tensor([i + [0.1] for i in x_data.detach().tolist()], dtype=torch.float32)
     pred_sai = torch.cat([pred_sai, fixed_sai], dim=1).detach().numpy()
-    pred_phi = (xi.T).dot(pred_sai.T)
+    #pred_phi = (xi.T).dot(pred_sai.T)
+    pred_phi = pred_sai.dot(zeta)
+    pred_phi = pred_phi.T
 
     for j in range(M + 3):
         phi_list[j][count] = pred_phi[j][0]

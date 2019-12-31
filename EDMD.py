@@ -125,8 +125,8 @@ a = [1, 1, 1, 1, 1, 1]
 
 N = 10000
 data_name = 'spectrum'  # , gausu_dis 'Linear''Discrete_Linear，Duffing_oscillator', Discrete_Linear Discrete_Linear_diag gausu_dis
-def data_Preprocessing(tr_val_te):
-    data = np.loadtxt(('./data/%s_%s.csv' % (data_name, tr_val_te)), delimiter=',', dtype=np.float64)[:N]
+def data_Preprocessing(tr_val_te, cut):
+    data = np.loadtxt(('./data/%s_%s.csv' % (data_name, tr_val_te)), delimiter=',', dtype=np.float64)[:cut]
     return data
 
 #グラフ
@@ -144,8 +144,8 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
         plt.ylabel('Im(μ)')
         plt.grid(True)  # 目盛の表示
     elif type == "multi_plot":
-        plt.plot(correct, label="correct")  # 実データ，青
-        plt.scatter([i for i in range(50)], predict, label="predict", color="orange")  # 予測，オレンジ
+        plt.plot(correct, label="exact")  # 実データ，青
+        plt.scatter([i for i in range(50)], predict, label="predictive", color="orange")  # 予測，オレンジ
         # plt.scatter([i for i in range(50)], phi_predict, label="predict", color="palegreen")  # 予測Φ，緑
         plt.title("x2_trajectory")
         plt.xlabel('n')
@@ -156,8 +156,8 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
     plt.show()
 
 
-x_data = data_Preprocessing("train_x")
-y_data = data_Preprocessing("train_y")
+x_data = data_Preprocessing("train_x", N)
+y_data = data_Preprocessing("train_y", N)
 
 # G = 1 / N * np.sum([np.outer(sai(data[i, 0]).T, (sai(data[i, 0]))) for i in range(N)], axis=0)  # 本当はエルミート
 # A = 1 / N * np.sum([np.outer(sai(data[i, 0]).T, (sai(data[i, 1]))) for i in range(N)], axis=0)
@@ -207,7 +207,7 @@ print(true_phi)"""
 """学習済みのnetを使って，E_reconを計算"""
 
 M = 22
-data = data_Preprocessing("train_x")
+data = data_Preprocessing("train_x", N)
 count = 0
 width = 10
 """Bを計算，X=BΨ"""
@@ -238,7 +238,7 @@ for i in range(1, M + 3):
 
 C = X25.T.dot(np.linalg.inv(rrr.T))
 
-data = data_Preprocessing("E_recon_50")  #
+data = data_Preprocessing("E_recon_50", N)  #
 width = 50
 
 print(K)
@@ -363,9 +363,9 @@ while count < 10:
           , x_data[:, 1], x_tilde_0, x_tilde_phi_0)
 
 """学習済みのnetを使って，E_eigfuncを計算"""
-I_number = 10
-data = data_Preprocessing("E_eigfunc_confirm")
+I_number = 10000
 width = 2
+data = data_Preprocessing("E_eigfunc_confirm", I_number * width)
 phi_list = [[0 for count in range(I_number)] for j in range(25)]
 y_phi_list = [[0 for count in range(I_number)] for j in range(25)]
 
@@ -377,7 +377,9 @@ for count in range(I_number):
         tmp = sai(x_data[i, 0], x_data[i, 1])
         Sai = np.vstack((Sai, tmp))
     sai_T = Sai.T
-    pred_phi = (xi.T).dot(sai_T)
+    #pred_phi = (xi.T).dot(sai_T)
+    pred_phi = Sai.dot(zeta)
+    pred_phi = pred_phi.T
 
     for j in range(M + 3):
         phi_list[j][count] = pred_phi[j][0]
