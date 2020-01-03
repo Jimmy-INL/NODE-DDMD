@@ -29,7 +29,7 @@ def J(K, theta):
 lambda_ = 1e-2  # 1e-6
 
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
-epsilon = 18.5
+epsilon = 18.2
 
 d = 2
 l = 100  # 70
