@@ -16,7 +16,7 @@ from matplotlib import pyplot as plt
 
 # from torchdiffeq import odeint
 from torchdiffeq import odeint_adjoint as odeint
-
+from statistics import mean
 
 data_name = 'spectrum'  # 'Duffing_oscillator', 'Linear'，Discrete_Linear Duffing_oscillator spectrum-1 'Discrete_Linear'
 
@@ -65,7 +65,7 @@ after_net = nn.Sequential(
 
 N = 10000
 inv_N = 1/N  # 0.1
-epsilon = 18.7643#18.5134
+epsilon = 30 #18.5134
 net = ODEFunc()
 
 with open('NODE_before_net.pkl', 'rb') as f:
@@ -108,6 +108,7 @@ def Frobenius_norm(X):
     # 描画実行
     plt.show()"""
 
+plt.rcParams["font.size"] = 18
 #グラフ
 def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim(1300,)
     plt.figure()
@@ -131,9 +132,10 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
         plt.xlabel('n')
         plt.ylabel(name[:2])
         plt.legend()
+        plt.tight_layout()
     plt.savefig("png/" + name + ".png")
     plt.savefig("eps/" + name + ".eps")
-    plt.show()
+    #plt.show()
 
 def total_net(data):
     before_pred_sai = before_net(data)
@@ -200,9 +202,9 @@ for p in after_net.parameters():
 print("parameterの数", params)
 # exit()
 
-loss = 18.7644#18.5135
+loss = 30.1#18.5135
 min_loss = loss
-while loss > epsilon: #and count < 1:  # count < rotation and
+while loss > epsilon and count < 1:  # count < rotation and
     if count % 50 == 0:
         print(count)
 
@@ -472,3 +474,4 @@ for j in range(M + 3):
                                    for count in range(I_number)]
     E_eigfunc[j] = np.sqrt(1 / I_number * sum(tmp))
     print(j, "E_eigfunc", E_eigfunc[j])
+print(mean(E_eigfunc))

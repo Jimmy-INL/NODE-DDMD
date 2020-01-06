@@ -1,0 +1,55 @@
+C:\Users\u8149\Anaconda3\python.exe C:/Users/u8149/OneDrive/ドキュメント/GitHub/NODE-DDMD/hinan.py
+parameterの数 10150
+0
+C:/Users/u8149/OneDrive/ドキュメント/GitHub/NODE-DDMD/hinan.py:252: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  K_tilde = torch.tensor(K_tilde, requires_grad=False)
+loss tensor(231.7172, grad_fn=<AddBackward0>)
+[ 0.9551425 +0.j          0.99743897+0.j          0.95221764+0.j
+  0.9831272 +0.j          0.17409748+0.j          0.1791912 +0.j
+  0.9003287 +0.j          0.7388832 +0.j         -0.00647537+0.24003804j
+ -0.00647537-0.24003804j  0.61465645+0.j          0.2232916 +0.49261472j
+  0.2232916 -0.49261472j  0.8351339 +0.j          0.700106  +0.j
+  0.5575822 +0.j          0.4596614 -0.00372126j  0.4596614 +0.00372126j
+  0.32685876+0.j          0.7406148 +0.j          0.83355826+0.j
+  0.59110844+0.j         -0.01536881+0.61759794j -0.01536881-0.61759794j
+  0.67576444+0.j        ]
+1 E_recon 0.0022099954661547743
+2 E_recon 0.0028763819572470047
+3 E_recon 0.0023912943079848906
+4 E_recon 0.0019136724968709857
+5 E_recon 0.0008865582563548043
+6 E_recon 0.0019667766376290996
+7 E_recon 0.0032171196230236588
+8 E_recon 0.0036513599457863003
+9 E_recon 0.000893790224966776
+10 E_recon 0.0020394942737628815
+C:\Users\u8149\Anaconda3\lib\site-packages\matplotlib\pyplot.py:522: RuntimeWarning: More than 20 figures have been opened. Figures created through the pyplot interface (`matplotlib.pyplot.figure`) are retained until explicitly closed and may consume too much memory. (To control this warning, see the rcParam `figure.max_open_warning`).
+  max_open_warning, RuntimeWarning)
+0 E_eigfunc 0.06541389386069048
+1 E_eigfunc 0.01821837914766531
+2 E_eigfunc 0.03317537851893169
+3 E_eigfunc 0.02595988988823863
+4 E_eigfunc 0.02695205078290153
+5 E_eigfunc 0.02617483918957418
+6 E_eigfunc 0.018806467532991512
+7 E_eigfunc 0.01420526271080673
+8 E_eigfunc 0.013074957022700147
+9 E_eigfunc 0.013074957022700147
+10 E_eigfunc 0.009233554877649765
+11 E_eigfunc 0.008186827273114906
+12 E_eigfunc 0.008186827273114906
+13 E_eigfunc 0.005777095899978607
+14 E_eigfunc 0.0044916823739686515
+15 E_eigfunc 0.004803111809564578
+16 E_eigfunc 0.0038088765497419847
+17 E_eigfunc 0.0038088765497419847
+18 E_eigfunc 0.0036892847264415143
+19 E_eigfunc 0.0030810414473413737
+20 E_eigfunc 0.0012417549648225145
+21 E_eigfunc 0.0016370320629648806
+22 E_eigfunc 0.0020564104008319022
+23 E_eigfunc 0.0020564104008319022
+24 E_eigfunc 0.001867785406473436
+0.012759305907751331
+
+Process finished with exit code 0

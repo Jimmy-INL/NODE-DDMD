@@ -30,19 +30,19 @@ def make_csv(filename, X):
 ###############Discrete_Linear#############################
 filenamePrefix = 'spectrum'
 seed = 10
-X_train = Discrete_Linear_ODE(x1range, x2range, 100, np.arange(0, 0.25 - 0.1, 0.25), seed, "x") # 0, 2.5, 0.25
+X_train = Linear_ODE(x1range, x2range, 1000, np.arange(0, 2.5 - 0.1, 0.25), seed, "x") # 0, 2.5, 0.25
 filename_train = filenamePrefix + '_train_x.csv'
 make_csv(filename_train, X_train)
 
 seed = 10
-tSpan = np.arange(0, 0.25 + 0.1, 0.25) # 0, 2.5 + 0.1, 0.25
-X_train = Discrete_Linear_ODE(x1range, x2range, 100, tSpan, seed, "y")
+tSpan = np.arange(0, 2.5 + 0.1, 0.25) # 0, 2.5 + 0.1, 0.25
+X_train = Linear_ODE(x1range, x2range, 1000, tSpan, seed, "y")
 filename_train = filenamePrefix + '_train_y.csv'
 make_csv(filename_train, X_train)
 
 seed = 1
 tSpan = np.arange(0, 12.5, 0.25)  # 0, 12.5, 0.25
-X_train = Discrete_Linear_ODE(x1range, x2range, round(1 * numICs), tSpan, seed)
+X_train = Linear_ODE(x1range, x2range, round(1 * numICs), tSpan, seed)
 filename_train = filenamePrefix + "_E_recon_50" + '.csv'
 make_csv(filename_train, X_train)
 

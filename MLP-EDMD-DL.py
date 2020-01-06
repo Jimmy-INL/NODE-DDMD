@@ -29,7 +29,7 @@ def J(K, theta):
 lambda_ = 1e-2  # 1e-6
 
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
-epsilon = 18.2
+epsilon = 30
 
 d = 2
 l = 100  # 70
@@ -40,7 +40,7 @@ N = 10000
 #width = 11  #11
 inv_N = 1/N  #0.1
 
-"""net = nn.Sequential(
+net = nn.Sequential(
     nn.Linear(d, l),
     nn.Tanh(),
     #nn.ReLU(),
@@ -52,11 +52,11 @@ inv_N = 1/N  #0.1
     nn.Tanh(),
     #nn.ReLU(),
     nn.Linear(l, M),
-)"""
+)
 
 
-with open('MLP_net.pkl', 'rb') as f:
-    net = cloudpickle.load(f)
+"""with open('MLP_net.pkl', 'rb') as f:
+    net = cloudpickle.load(f)"""
 
 # optimizer = optim.SGD(net.parameters(), lr=2e-4)
 optimizer = optim.Adam(net.parameters(), lr=1e-3)  # 1e-4
@@ -90,6 +90,7 @@ def Frobenius_norm(X):
     # 描画実行
     plt.show()"""
 
+plt.rcParams["font.size"] = 18
 #グラフ
 def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim(1300,)
     plt.figure()
@@ -113,9 +114,11 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
         plt.xlabel('n')
         plt.ylabel(name[:2])
         plt.legend()
+
+        plt.tight_layout()
     plt.savefig("png/" + name + ".png")
     plt.savefig("eps/" + name + ".eps")
-    plt.show()
+    #plt.show()
 
 
 
