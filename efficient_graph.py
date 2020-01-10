@@ -13,7 +13,8 @@ plt.scatter(x, y)  # 予測，オレンジ
 #plt.plot(phi_predict, label="predict")  # 予測Φ，緑
 #plt.title()
 plt.xlabel("ν/μ")
-plt.ylabel("MLP / NODE")
+plt.ylabel("MLP / NODE parameter count")
+plt.grid(True)  # 目盛の表示
 #plt.legend()
 plt.tight_layout()
 plt.savefig("png/" + name + ".png")
