@@ -141,7 +141,7 @@ def total_net(data):
     before_pred_sai = before_net(data)
 
     # before_pred_sai = torch.tensor([[i for i in range(l)] for _ in range(N)], dtype=torch.float32)
-    after_pred_sai = odeint(net, before_pred_sai, tSpan)[1]
+    after_pred_sai = odeint(net, before_pred_sai, tSpan)[1]  # なぜθがtに依存しなくなるかを調べる
     pred_sai = after_net(after_pred_sai)
     return pred_sai
 
