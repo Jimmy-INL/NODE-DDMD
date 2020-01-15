@@ -29,7 +29,7 @@ def J(K, theta):
 lambda_ = 1e-2  # 1e-6
 
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
-epsilon = 30
+epsilon = 17
 
 d = 2
 l = 100  # 70
@@ -55,8 +55,8 @@ net = nn.Sequential(
 )
 
 
-"""with open('MLP_net.pkl', 'rb') as f:
-    net = cloudpickle.load(f)"""
+with open('MLP_net.pkl', 'rb') as f:
+    net = cloudpickle.load(f)
 
 # optimizer = optim.SGD(net.parameters(), lr=2e-4)
 optimizer = optim.Adam(net.parameters(), lr=1e-3)  # 1e-4
@@ -108,7 +108,7 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
     elif type == "multi_plot":
         plt.plot(correct, label="exact")  # 実データ，青
         #plt.plot(predict, label="predict")  # 予測，オレンジ
-        plt.scatter([i for i in range(50)], predict, label="predictive", color="orange")  # 予測，オレンジ
+        plt.scatter([i for i in range(50)], predict, label="predicted", color="orange")  # 予測，オレンジ
         #plt.plot(phi_predict, label="predict")  # 予測Φ，緑
         plt.title(name[:2] + "_trajectory")
         plt.xlabel('n')
@@ -156,7 +156,7 @@ print("parameterの数", params)
 #exit()"""
 
 loss = float("INF")
-while loss > epsilon or count < 50:  # count < rotation and
+while loss > epsilon:  # count < rotation and
     if count % 100 == 0:
         print(count)
     optimizer.zero_grad()

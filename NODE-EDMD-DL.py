@@ -65,7 +65,7 @@ after_net = nn.Sequential(
 
 N = 10000
 inv_N = 1/N  # 0.1
-epsilon = 30 #18.5134
+epsilon = 17 #18.5134
 net = ODEFunc()
 
 with open('NODE_before_net.pkl', 'rb') as f:
@@ -126,7 +126,7 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
     elif type == "multi_plot":
         plt.plot(correct, label="exact")  # 実データ，青
         #plt.plot(predict, label="predict")  # 予測，オレンジ
-        plt.scatter([i for i in range(50)], predict, label="predictive", color="orange")  # 予測，オレンジ
+        plt.scatter([i for i in range(50)], predict, label="predicted", color="orange")  # 予測，オレンジ
         #plt.plot(phi_predict, label="predict")  # 予測Φ，緑
         plt.title(name[:2] + "_trajectory")
         plt.xlabel('n')
