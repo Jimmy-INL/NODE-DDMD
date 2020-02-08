@@ -468,10 +468,17 @@ for count in range(I_number):
 
 """E_eigfunc_jを計算"""
 E_eigfunc = [0] * (M + 3)
+E_eigfunc = [0] * (M + 3)
+norm = [0] * (M + 3)
 for j in range(M + 3):
-    tmp = [(y_phi_list[j][count] - mu[j] * phi_list[j][count]).real ** 2
-           + (y_phi_list[j][count] - mu[j] * phi_list[j][count]).imag ** 2
-                                   for count in range(I_number)]
+    norm[j] = [phi_list[j][count].real ** 2 + phi_list[j][count].imag ** 2
+            for count in range(I_number)]
+    norm[j] = np.sqrt(1 / I_number * sum(norm[j]))
+
+for j in range(M + 3):
+    tmp = [(1 / norm[j] * y_phi_list[j][count] - mu[j] * 1 / norm[j] * phi_list[j][count]).real ** 2
+           + (1 / norm[j] * y_phi_list[j][count] - mu[j] * 1 / norm[j] * phi_list[j][count]).imag ** 2
+           for count in range(I_number)]
     E_eigfunc[j] = np.sqrt(1 / I_number * sum(tmp))
     print(j, "E_eigfunc", E_eigfunc[j])
 print(mean(E_eigfunc))
