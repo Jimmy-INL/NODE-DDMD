@@ -29,7 +29,7 @@ def J(K, theta):
 lambda_ = 1e-2  # 1e-6
 
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
-epsilon = 17
+epsilon = 20
 
 d = 2
 l = 100  # 70
@@ -116,8 +116,8 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
         plt.legend()
 
         plt.tight_layout()
-    plt.savefig("png/" + name + ".png")
-    plt.savefig("eps/" + name + ".eps")
+    plt.savefig("MLP_img/png/" + name + ".png")
+    plt.savefig("MLP_img/eps/" + name + ".eps")
     #plt.show()
 
 
@@ -156,7 +156,7 @@ print("parameterの数", params)
 #exit()"""
 
 loss = float("INF")
-while loss > epsilon or count < 1:  # count < rotation and
+while loss > epsilon:  # count < rotation and
     if count % 100 == 0:
         print(count)
     optimizer.zero_grad()

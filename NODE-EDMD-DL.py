@@ -65,7 +65,7 @@ after_net = nn.Sequential(
 
 N = 10000
 inv_N = 1/N  # 0.1
-epsilon = 17 #18.5134
+epsilon = 30 #18.5134
 net = ODEFunc()
 
 with open('NODE_before_net.pkl', 'rb') as f:
@@ -133,8 +133,8 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
         plt.ylabel(name[:2])
         plt.legend()
         plt.tight_layout()
-    plt.savefig("png/" + name + ".png")
-    plt.savefig("eps/" + name + ".eps")
+    plt.savefig("NODE_img/png/" + name + ".png")
+    plt.savefig("NODE_img/eps/" + name + ".eps")
     #plt.show()
 
 def total_net(data):
@@ -204,7 +204,7 @@ print("parameterの数", params)
 
 loss = 30.1#18.5135
 min_loss = loss
-while loss > epsilon and count < 1:  # count < rotation and
+while loss > epsilon:  # count < rotation and
     if count % 50 == 0:
         print(count)
 
