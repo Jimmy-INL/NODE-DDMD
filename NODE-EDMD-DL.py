@@ -65,14 +65,14 @@ after_net = nn.Sequential(
 
 N = 10000
 inv_N = 1/N  # 0.1
-epsilon = 30 #18.5134
+epsilon = 20 #18.5134
 net = ODEFunc()
 
-with open('NODE_before_net.pkl', 'rb') as f:
+with open('nolta_NODE_before_net.pkl', 'rb') as f:
     before_net = cloudpickle.load(f)
-with open('NODE_net.pkl', 'rb') as f:
+with open('nolta_v_NODE_net.pkl', 'rb') as f:
     net = cloudpickle.load(f)
-with open('NODE_after_net.pkl', 'rb') as f:
+with open('nolta_NODE_after_net.pkl', 'rb') as f:
     after_net = cloudpickle.load(f)
 
 # optimizer = optim.SGD(net.parameters(), lr=1e-5)
@@ -202,18 +202,18 @@ for p in after_net.parameters():
 print("parameterの数", params)
 # exit()
 
-loss = 30.1#18.5135
+loss = float("INF")#18.5135
 min_loss = loss
 while loss > epsilon:  # count < rotation and
     if count % 50 == 0:
         print(count)
 
     if loss < min_loss:  # lowest_lossのときのNNを記録
-        with open('NODE_before_net.pkl', 'wb') as f:
+        with open('nolta_NODE_before_net.pkl', 'wb') as f:
             cloudpickle.dump(before_net, f)
-        with open('NODE_net.pkl', 'wb') as f:
+        with open('nolta_v_NODE_net.pkl', 'wb') as f:
             cloudpickle.dump(net, f)
-        with open('NODE_after_net.pkl', 'wb') as f:
+        with open('nolta_NODE_after_net.pkl', 'wb') as f:
             cloudpickle.dump(after_net, f)
         min_loss = loss
 

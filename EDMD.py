@@ -124,7 +124,7 @@ a = [1, 1, 1, 1, 1, 1]
 #phi = lambda a: sum([sai[i] * a[i] for i in range(6)])
 
 N = 10000
-data_name = 'spectrum'  # , gausu_dis 'Linear''Discrete_Linear，Duffing_oscillator', Discrete_Linear Discrete_Linear_diag gausu_dis
+data_name = "Duffing_oscillator"  #'spectrum' , gausu_dis 'Linear''Discrete_Linear，Duffing_oscillator', Discrete_Linear Discrete_Linear_diag gausu_dis
 def data_Preprocessing(tr_val_te, cut):
     data = np.loadtxt(('./data/%s_%s.csv' % (data_name, tr_val_te)), delimiter=',', dtype=np.float64)[:cut]
     return data

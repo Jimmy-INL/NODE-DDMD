@@ -29,7 +29,7 @@ def J(K, theta):
 lambda_ = 1e-2  # 1e-6
 
 # K_tilde = np.linalg.pinv(G + lambda_.dot(I)).dot(A)
-epsilon = 20
+epsilon = 18
 
 d = 2
 l = 100  # 70
@@ -55,7 +55,7 @@ net = nn.Sequential(
 )
 
 
-with open('MLP_net.pkl', 'rb') as f:
+with open('nolta_MLP_net.pkl', 'rb') as f:
     net = cloudpickle.load(f)
 
 # optimizer = optim.SGD(net.parameters(), lr=2e-4)
@@ -116,8 +116,8 @@ def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim
         plt.legend()
 
         plt.tight_layout()
-    plt.savefig("MLP_img/png/" + name + ".png")
-    plt.savefig("MLP_img/eps/" + name + ".eps")
+    plt.savefig("MLP_img/nolta_png/" + name + ".png")
+    plt.savefig("MLP_img/nolta_eps/" + name + ".eps")
     #plt.show()
 
 
@@ -236,7 +236,7 @@ x = [i for i in range(count)]
 graph(x, y, "train", "plot")
 count = 0
 
-with open('MLP_net.pkl', 'wb') as f:
+with open('nolta_MLP_net.pkl', 'wb') as f:
     cloudpickle.dump(net, f)
 
 """学習済みのnetを使って，E_reconを計算"""
