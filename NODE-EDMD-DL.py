@@ -68,11 +68,11 @@ inv_N = 1/N  # 0.1
 epsilon = 20 #18.5134
 net = ODEFunc()
 
-with open('nolta_NODE_before_net.pkl', 'rb') as f:
+with open('NODE_before_net.pkl', 'rb') as f:
     before_net = cloudpickle.load(f)
-with open('nolta_v_NODE_net.pkl', 'rb') as f:
+with open('v_NODE_net.pkl', 'rb') as f:
     net = cloudpickle.load(f)
-with open('nolta_NODE_after_net.pkl', 'rb') as f:
+with open('NODE_after_net.pkl', 'rb') as f:  # nolta_
     after_net = cloudpickle.load(f)
 
 # optimizer = optim.SGD(net.parameters(), lr=1e-5)
@@ -108,7 +108,10 @@ def Frobenius_norm(X):
     # 描画実行
     plt.show()"""
 
-plt.rcParams["font.size"] = 18
+#plt.rcParams["font.size"] = 18
+plt.rcParams['ps.useafm'] = True
+plt.rcParams['pdf.use14corefonts'] = True
+#plt.rcParams['text.usetex'] = True
 #グラフ
 def graph(x, y, name, type, correct=[], predict=[], phi_predict=[]):  # plt.xlim(1300,)
     plt.figure()
@@ -209,11 +212,11 @@ while loss > epsilon:  # count < rotation and
         print(count)
 
     if loss < min_loss:  # lowest_lossのときのNNを記録
-        with open('nolta_NODE_before_net.pkl', 'wb') as f:
+        with open('NODE_before_net.pkl', 'wb') as f:
             cloudpickle.dump(before_net, f)
-        with open('nolta_v_NODE_net.pkl', 'wb') as f:
+        with open('v_NODE_net.pkl', 'wb') as f:
             cloudpickle.dump(net, f)
-        with open('nolta_NODE_after_net.pkl', 'wb') as f:
+        with open('NODE_after_net.pkl', 'wb') as f:
             cloudpickle.dump(after_net, f)
         min_loss = loss
 
