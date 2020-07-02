@@ -189,6 +189,7 @@ mu_imag = [i.imag for i in mu]
 graph(mu_real, mu_imag, "eigenvalue", "scatter")"""
 
 K = np.linalg.pinv(G).dot(A)
+P = np.conjugate(K.T)
 mu, w, xi = la.eig(K, left=True, right=True)
 
 mu_real = [i.real for i in mu]
